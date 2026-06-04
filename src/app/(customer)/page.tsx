@@ -17,7 +17,7 @@ export default function HomePage() {
           className="object-cover opacity-40"
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-primary/20" />
+        <div className="absolute inset-0 bg-linear-to-r from-primary via-primary/80 to-primary/20" />
         <div className="relative mx-auto flex min-h-[85vh] max-w-7xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
           <p className="inline-flex w-fit rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-accent-brand backdrop-blur-sm">
             New Season · 2026
