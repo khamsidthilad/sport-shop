@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { ShoppingCart, User, Menu, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { useAppSelector } from '@/hooks/useAppSelector';
+import { useCustomerSession } from '@/hooks/useCustomerSession';
 
 const nav = [
   { href: '/', label: 'Home' },
@@ -20,7 +21,7 @@ export function Header() {
   const cartCount = useAppSelector((s) =>
     s.cart.items.reduce((sum, i) => sum + i.quantity, 0),
   );
-  const session = useAppSelector((s) => s.auth.customerSession);
+  const session = useCustomerSession();
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">

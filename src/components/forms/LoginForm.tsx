@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
+import { useCustomerSession } from '@/hooks/useCustomerSession';
 import { loginCustomer, clearError } from '@/redux/slices/authSlice';
 import type { LoginCredentials } from '@/types/auth.type';
 import { CustomerLayout } from '@/components/layouts/CustomerLayout';
@@ -25,7 +26,7 @@ export default function LoginForm() {
   const router = useRouter();
   const error = useAppSelector((s) => s.auth.error);
   const loading = useAppSelector((s) => s.auth.loading);
-  const session = useAppSelector((s) => s.auth.customerSession);
+  const session = useCustomerSession();
 
   const {
     register,
