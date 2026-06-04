@@ -1,8 +1,23 @@
 import type { Metadata } from 'next';
+import { Bebas_Neue, Inter } from 'next/font/google';
 import { Toaster } from 'sonner';
 import ReduxProvider from '@/providers/ReduxProvider';
 import QueryProvider from '@/providers/QueryProvider';
 import './globals.css';
+
+const inter = Inter({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-sans',
+  display: 'swap',
+});
+
+const bebasNeue = Bebas_Neue({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-display',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'SportShop — Premium Sports Gear & Equipment',
@@ -16,15 +31,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap"
-        />
-      </head>
-      <body className="min-h-screen antialiased">
+    <html lang="en" className={`${inter.variable} ${bebasNeue.variable}`}>
+      <body className={`${inter.className} min-h-screen antialiased`}>
         <QueryProvider>
           <ReduxProvider>{children}</ReduxProvider>
         </QueryProvider>

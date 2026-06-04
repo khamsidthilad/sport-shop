@@ -59,7 +59,6 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-accent-brand: var(--brand-red);
-  --font-display: 'Bebas Neue', 'Inter', sans-serif;
 }
 
 :root {
@@ -145,10 +144,10 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--font-sans), system-ui, sans-serif;
   }
   h1, h2, h3, h4, .font-display {
-    font-family: 'Bebas Neue', 'Inter', sans-serif;
+    font-family: var(--font-display), var(--font-sans), sans-serif;
     letter-spacing: 0.02em;
   }
 }

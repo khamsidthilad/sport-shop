@@ -13,15 +13,6 @@ interface CartState {
 
 const CART_STORAGE_KEY = 'cart';
 
-function loadCartItems(): CartItem[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    return JSON.parse(localStorage.getItem(CART_STORAGE_KEY) || '[]') as CartItem[];
-  } catch {
-    return [];
-  }
-}
-
 function persistCartItems(items: CartItem[]) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
