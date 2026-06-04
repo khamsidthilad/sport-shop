@@ -153,3 +153,10 @@
 //     </div>
 //   );
 // }
+export default function BrandAdminPage() {
+  return (
+    <div>
+      <h1>Brand Admin Page</h1>
+    </div>
+  );
+}

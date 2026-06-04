@@ -170,3 +170,10 @@
 //     </div>
 //   );
 // }
+export default function OrderAdminPage() {
+  return (
+    <div>
+      <h1>Order Admin Page</h1>
+    </div>
+  );
+}

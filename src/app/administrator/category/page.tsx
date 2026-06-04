@@ -159,3 +159,10 @@
 //     </div>
 //   );
 // }
+export default function CategoryAdminPage() {
+  return (
+    <div>
+      <h1>Category Admin Page</h1>
+    </div>
+  );
+}

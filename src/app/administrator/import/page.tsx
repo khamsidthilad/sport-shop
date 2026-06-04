@@ -144,3 +144,10 @@
 //     </div>
 //   );
 // }
+export default function ImportAdminPage() {
+  return (
+    <div>
+      <h1>Import Admin Page</h1>
+    </div>
+  );
+}

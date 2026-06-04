@@ -95,3 +95,10 @@
 //     </div>
 //   );
 // }
+export default function CustomerAdminPage() {
+  return (
+    <div>
+      <h1>Customer Admin Page</h1>
+    </div>
+  );
+}
