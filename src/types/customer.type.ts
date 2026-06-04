@@ -1,1 +1,1 @@
-export type Customer = { id: string; fullName: string; email: string }
+export type { Customer, Address } from '@/lib/types';

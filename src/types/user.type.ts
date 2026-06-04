@@ -1,1 +1,1 @@
-export type User = { id: string; username: string }
+export type { AdminUser } from '@/lib/types';

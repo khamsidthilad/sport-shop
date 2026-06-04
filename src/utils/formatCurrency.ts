@@ -1,1 +1,6 @@
-export const formatCurrency = (n: number) => `₫${n.toFixed(0)}`
+export const formatCurrency = (n: number) =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'THB',
+    maximumFractionDigits: 0,
+  }).format(n);

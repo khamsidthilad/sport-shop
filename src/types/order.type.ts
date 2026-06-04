@@ -1,1 +1,1 @@
-export type Order = { id: string; total: number }
+export type { Order, OrderStatus, PaymentMethod } from '@/lib/types';

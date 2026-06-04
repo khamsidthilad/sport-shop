@@ -1,1 +1,1 @@
-export type Category = { id: string; name: string; slug?: string }
+export type { Category } from '@/lib/types';
