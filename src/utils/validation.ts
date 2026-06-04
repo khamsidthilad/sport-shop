@@ -1,1 +1,1 @@
-export const required = (v: any) => v != null && v !== ''
+export const required = (v: unknown) => v != null && v !== ''

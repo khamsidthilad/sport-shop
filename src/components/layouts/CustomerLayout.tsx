@@ -1,4 +1,17 @@
-import React from 'react'
-export default function CustomerLayout({ children }: { children: React.ReactNode }) {
-  return <div className="min-h-screen">{children}</div>
+'use client';
+
+import type { ReactNode } from 'react';
+import { Header } from './Header';
+import { Footer } from './Footer';
+
+export function CustomerLayout({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1">{children}</main>
+      <Footer />
+    </div>
+  );
 }
+
+export default CustomerLayout;

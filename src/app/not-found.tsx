@@ -1,20 +1,21 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-900 p-6">
-      <div className="max-w-xl w-full rounded-3xl border border-slate-200 bg-white p-10 shadow-lg">
-        <h1 className="text-3xl font-semibold mb-4">This page can not load</h1>
-        <p className="mb-6 text-slate-600">Something went wrong on our end. Please refresh the browser or head back home.</p>
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Link href="/" className="rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800 text-center">
-            Go home
-          </Link>
-          <Link href="." className="rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50 text-center">
-            Refresh
-          </Link>
-        </div>
+    <main className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+      <div className="w-full max-w-xl rounded-sm border border-border bg-card p-10 text-center shadow-bold">
+        <p className="font-display text-7xl text-accent-brand">404</p>
+        <h1 className="mt-4 font-display text-3xl">Page not found</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
+        </p>
+        <Link
+          href="/"
+          className="mt-8 inline-block bg-primary px-8 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand"
+        >
+          Go home
+        </Link>
       </div>
     </main>
-  )
+  );
 }
