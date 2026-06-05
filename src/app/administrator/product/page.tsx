@@ -149,9 +149,9 @@
 
 export default function ProductPage() {
   return (
-    <div className="p-8 space-y-6">
-      <h1 className="font-display text-3xl">PRODUCT MANAGEMENT</h1>
-      <p className="text-muted-foreground">This section is under construction. Please check back later.</p>
+    <div>
+      <h1>Product Page</h1>
     </div>
   );
 }
+
