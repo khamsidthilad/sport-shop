@@ -5,20 +5,20 @@ import { toast } from 'sonner';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { addItem } from '@/redux/slices/productSlice';
 import { productService } from '@/services/product.api';
-import type { CreateProductInput } from '@/types/createPro';
+import { categoryService } from '@/services/category.api';
+import { brandService } from '@/services/brand.api';
+import type { CreateProductInput, UpdateProductInput } from '@/types/createPro';
 import type { Brand, Category, Product } from '@/types/product.type';
 import { getProductImageUrl } from '@/utils/getProductImageUrl';
-import Image from 'next/image';
+
 interface ProductFormProps {
   product: Product | null;
-  categories: Category[];
-  brands: Brand[];
   onSave?: (data: Product) => void;
   onCreated?: () => void;
   onClose: () => void;
 }
 
-function emptyProduct(categories: Category[], brands: Brand[]): Product {
+function emptyProduct(): Product {
   return {
     pro_id: 0,
     pro_name: '',
@@ -26,8 +26,6 @@ function emptyProduct(categories: Category[], brands: Brand[]): Product {
     pro_price: '0',
     pro_image: '',
     pro_qty: 0,
-    cate_id: categories[0]?.cate_id,
-    brand_id: brands[0]?.brand_id,
     createdAt: '',
     updatedAt: '',
   };
@@ -45,14 +43,63 @@ function toCreateInput(form: Product, imageFile: File): CreateProductInput {
   };
 }
 
-export default function ProductForm({ product, categories, brands, onSave, onCreated, onClose }: ProductFormProps) {
+function toUpdateInput(form: Product, imageFile: File | null): UpdateProductInput {
+  return {
+    pro_id: form.pro_id,
+    pro_name: form.pro_name ?? '',
+    pro_detail: form.pro_detail ?? '',
+    pro_price: form.pro_price ?? '0',
+    pro_qty: form.pro_qty,
+    cate_id: form.cate_id!,
+    brand_id: form.brand_id!,
+    ...(imageFile ? { pro_image: imageFile } : {}),
+  };
+}
+
+export default function ProductForm({ product, onSave, onCreated, onClose }: ProductFormProps) {
   const dispatch = useAppDispatch();
-  const [form, setForm] = useState<Product>(product ?? emptyProduct(categories, brands));
+  const [form, setForm] = useState<Product>(product ?? emptyProduct());
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [optionsLoading, setOptionsLoading] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
     product?.pro_image ? getProductImageUrl(product.pro_image) : null,
   );
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all([categoryService.getAll(), brandService.getAll()])
+      .then(([cats, brs]) => {
+        if (cancelled) return;
+        setCategories(cats);
+        setBrands(brs);
+
+        if (product) {
+          setForm(product);
+        } else {
+          setForm((prev) => ({
+            ...prev,
+            cate_id: prev.cate_id ?? cats[0]?.cate_id,
+            brand_id: prev.brand_id ?? brs[0]?.brand_id,
+          }));
+        }
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : 'Failed to load options';
+        toast.error(message);
+      })
+      .finally(() => {
+        if (!cancelled) setOptionsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product]);
 
   useEffect(() => {
     return () => {
@@ -87,25 +134,28 @@ export default function ProductForm({ product, categories, brands, onSave, onCre
     const category = categories.find((c) => c.cate_id === form.cate_id);
     const brand = brands.find((b) => b.brand_id === form.brand_id);
 
-    if (product) {
-      onSave?.({ ...form, category, brand });
-      return;
-    }
-
-    if (!imageFile) {
-      toast.error('Please select an image file');
-      return;
-    }
-
     setSubmitting(true);
     try {
+      if (product) {
+        const updated = await productService.update(toUpdateInput(form, imageFile));
+        onSave?.({ ...updated, category, brand });
+        toast.success('Product updated');
+        onClose();
+        return;
+      }
+
+      if (!imageFile) {
+        toast.error('Please select an image file');
+        return;
+      }
+
       const created = await productService.create(toCreateInput(form, imageFile));
       dispatch(addItem({ ...created, category, brand }));
       toast.success('Product created');
       onCreated?.();
       onClose();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create product';
+      const message = err instanceof Error ? err.message : 'Failed to save product';
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -125,6 +175,8 @@ export default function ProductForm({ product, categories, brands, onSave, onCre
               onChange={(v) => setForm({ ...form, brand_id: Number(v) })}
               options={brands.map((b) => ({ v: String(b.brand_id), l: b.name }))}
               required
+              disabled={optionsLoading}
+              placeholder={optionsLoading ? 'Loading brands…' : 'Select brand'}
             />
             <Sel
               label="Category"
@@ -132,6 +184,8 @@ export default function ProductForm({ product, categories, brands, onSave, onCre
               onChange={(v) => setForm({ ...form, cate_id: Number(v) })}
               options={categories.map((c) => ({ v: String(c.cate_id), l: c.cate_name }))}
               required
+              disabled={optionsLoading}
+              placeholder={optionsLoading ? 'Loading categories…' : 'Select category'}
             />
             <Inp
               label="Price"
@@ -158,7 +212,7 @@ export default function ProductForm({ product, categories, brands, onSave, onCre
               className="w-full mt-1 px-3 py-2 border border-border bg-background file:mr-3 file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-bold file:uppercase"
             />
             {imagePreview && (
-              <Image
+              <img
                 src={imagePreview}
                 alt="Preview"
                 className="mt-2 w-24 h-24 object-cover border border-border"
@@ -180,7 +234,7 @@ export default function ProductForm({ product, categories, brands, onSave, onCre
             </button>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || optionsLoading}
               className="bg-primary text-primary-foreground px-4 py-2 font-bold uppercase text-sm disabled:opacity-50"
             >
               {submitting ? 'Saving…' : 'Save'}
@@ -223,12 +277,16 @@ const Sel = ({
   onChange,
   options,
   required = false,
+  disabled = false,
+  placeholder = 'Select…',
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: { v: string; l: string }[];
   required?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
 }) => (
   <label className="block">
     <span className="text-xs uppercase font-bold tracking-widest">{label}</span>
@@ -236,8 +294,14 @@ const Sel = ({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       required={required}
-      className="w-full mt-1 px-3 py-2 border border-border bg-background"
+      disabled={disabled}
+      className="w-full mt-1 px-3 py-2 border border-border bg-background disabled:opacity-50"
     >
+      {!value && (
+        <option value="" disabled>
+          {placeholder}
+        </option>
+      )}
       {options.map((o) => (
         <option key={o.v} value={o.v}>
           {o.l}

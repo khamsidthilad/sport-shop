@@ -1,29 +1,65 @@
-import type { GetAllProductsResponse, Product } from '@/types/product.type';
-import type { CreateProductInput, CreateProductResponse } from '@/types/createPro';
+import { toProduct, type DeleteProductResponse, type GetAllProductsResponse, type GetProductResponse, type Product } from '@/types/product.type';
+import {
+  toCreateFormData,
+  toUpdateFormData,
+  type CreateProductInput,
+  type CreateProductResponse,
+  type UpdateProductInput,
+  type UpdateProductResponse,
+} from '@/types/createPro';
+import { normalizeProductImage } from '@/utils/getProductImageUrl';
 import { api } from './api';
+
+function normalizeProduct(item: Product): Product {
+  return {
+    ...item,
+    pro_qty: Number(item.pro_qty),
+    pro_image: item.pro_image ? normalizeProductImage(item.pro_image) : undefined,
+  };
+}
 
 export const productService = {
   getAll: async (): Promise<Product[]> => {
     const { data } = await api.get<GetAllProductsResponse>('/products/all');
     if (!data.success) throw new Error('Failed to load products');
-    return data.data;
+    return data.data.map(normalizeProduct);
+  },
+  getById: async (pro_id: number): Promise<Product> => {
+    const { data } = await api.get<GetProductResponse>(`/products/get/${pro_id}`);
+    if (!data.success) throw new Error('Failed to load product');
+    return normalizeProduct(data.data);
   },
 
-  create: async (input: CreateProductInput): Promise<Product> => {
-    const formData = new FormData();
-    formData.append('pro_name', input.pro_name);
-    formData.append('pro_detail', input.pro_detail);
-    formData.append('pro_price', input.pro_price);
-    formData.append('pro_qty', String(input.pro_qty));
-    formData.append('cate_id', String(input.cate_id));
-    formData.append('brand_id', String(input.brand_id));
-    formData.append('pro_image', input.pro_image);
-
-    const { data } = await api.post<CreateProductResponse>('/products/create', formData);
-    if (!data.success) throw new Error('Failed to create product');
-    return data.data;
+  getByCateId: async (cate_id: number): Promise<Product[]> => {
+    const { data } = await api.get<GetAllProductsResponse>(`/products/getByCateId/${cate_id}`);
+    if (!data.success) throw new Error('Failed to load products');
+    return data.data.map(normalizeProduct);
   },
-  
+  getByBrandId: async (brand_id: number): Promise<Product[]> => {
+    const { data } = await api.get<GetAllProductsResponse>(`/products/getByBrandId/${brand_id}`);
+    if (!data.success) throw new Error('Failed to load products');
+    return data.data.map(normalizeProduct);
+  },
  
-};
+  create: async (input: CreateProductInput): Promise<Product> => {
+    const { data } = await api.post<CreateProductResponse>(
+      '/products/create',
+      toCreateFormData(input),
+    );
+    if (!data.success) throw new Error('Failed to create product');
+    return toProduct(data.data);
+  },
 
+  update: async (input: UpdateProductInput): Promise<Product> => {
+    const { data } = await api.put<UpdateProductResponse>(
+      `/products/update/${input.pro_id}`,
+      toUpdateFormData(input),
+    );
+    if (!data.success) throw new Error('Failed to update product');
+    return toProduct(data.data);
+  },
+  delete: async (pro_id: number): Promise<void> => {
+    const { data } = await api.delete<DeleteProductResponse>(`/products/delete/${pro_id}`);
+    if (!data.success) throw new Error('Failed to delete product');
+  },
+};
