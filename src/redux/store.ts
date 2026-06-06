@@ -8,7 +8,7 @@ import customerReducer from './slices/customerSlice';
 import orderReducer from './slices/orderSlice';
 import supplierReducer from './slices/supplierSlice';
 import dashboardReducer from './slices/dashboardSlice';
-
+import userReducer from './slices/userSlice';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -20,6 +20,7 @@ export const store = configureStore({
     order: orderReducer,
     supplier: supplierReducer,
     dashboard: dashboardReducer,
+    user: userReducer,
   },
 });
 
