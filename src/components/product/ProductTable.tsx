@@ -58,27 +58,38 @@ export default function ProductTable({ onEdit }: ProductTableProps) {
   const [page, setPage] = useState(1);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadProducts = async (cancelledRef?: { current: boolean }) => {
+    try {
+      const items = await productService.getAll();
+      if (!cancelledRef?.current) dispatch(setItems(items));
+    } catch (err: unknown) {
+      if (!cancelledRef?.current) {
+        const message = err instanceof Error ? err.message : 'Failed to load products';
+        setError(message);
+        toast.error(message);
+      }
+    } finally {
+      if (!cancelledRef?.current) setLoading(false);
+    }
+  };
 
-    productService
-      .getAll()
-      .then((items) => {
-        if (!cancelled) dispatch(setItems(items));
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load products';
-          setError(message);
-          toast.error(message);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+  useEffect(() => {
+    const cancelled = { current: false };
+    void loadProducts(cancelled);
+
+    const refreshOnFocus = () => {
+      if (document.visibilityState === 'visible') {
+        void loadProducts();
+      }
+    };
+
+    window.addEventListener('focus', refreshOnFocus);
+    document.addEventListener('visibilitychange', refreshOnFocus);
 
     return () => {
-      cancelled = true;
+      cancelled.current = true;
+      window.removeEventListener('focus', refreshOnFocus);
+      document.removeEventListener('visibilitychange', refreshOnFocus);
     };
   }, [dispatch]);
 

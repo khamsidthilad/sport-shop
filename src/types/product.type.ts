@@ -50,3 +50,6 @@ export function toProduct(data: CreateProductData): Product {
     updatedAt: data.updatedAt,
   };
 }
+
+
+
