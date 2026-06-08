@@ -1,7 +1,8 @@
+import { Customer } from '@/types/customer.type';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export interface CustomerState {
-  items: Array<Record<string, unknown>>;
+  items: Customer[];
 }
 
 const initialState: CustomerState = {
@@ -12,7 +13,7 @@ const customerSlice = createSlice({
   name: 'customer',
   initialState,
   reducers: {
-    setItems: (state, action: PayloadAction<CustomerState['items']>) => {
+    setItems: (state, action: PayloadAction<Customer[]>) => {
       state.items = action.payload;
     },
   },

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingCart, User, Menu, Search, X } from 'lucide-react';
 import { useState } from 'react';
-import { useAppSelector } from '@/hooks/useAppSelector';
+import { useCartCount } from '@/hooks/useCartCount';
 import { useCustomerSession } from '@/hooks/useCustomerSession';
 
 const nav = [
@@ -18,9 +18,7 @@ const nav = [
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const cartCount = useAppSelector((s) =>
-    s.cart.items.reduce((sum, i) => sum + i.quantity, 0),
-  );
+  const cartCount = useCartCount();
   const session = useCustomerSession();
 
   return (

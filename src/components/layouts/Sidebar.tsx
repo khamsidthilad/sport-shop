@@ -22,6 +22,7 @@ const items = [
   { href: '/administrator/product', label: 'Products', icon: Package },
   { href: '/administrator/category', label: 'Categories', icon: FolderTree },
   { href: '/administrator/brand', label: 'Brands', icon: Tag },
+  { href: '/administrator/supplier', label: 'Suppliers', icon: Users },
   { href: '/administrator/customer', label: 'Customers', icon: Users },
   { href: '/administrator/user', label: 'Users', icon: UserCog },
   { href: '/administrator/order', label: 'Orders', icon: ShoppingBag },
