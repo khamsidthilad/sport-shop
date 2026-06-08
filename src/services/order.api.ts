@@ -93,6 +93,19 @@ export const orderService = {
     }
   },
 
+  /** PUT /orders/:orderId/cancel — customer cancel order */
+  cancel: async (orderId: number): Promise<Order> => {
+    try {
+      const { data } = await api.put<UpdateOrderStatusResponse>(
+        `/orders/${orderId}/cancel`,
+      );
+      assertSuccess(data, 'Failed to cancel order');
+      return data.data;
+    } catch (err) {
+      throw new Error(getApiErrorMessage(err, 'Failed to cancel order'));
+    }
+  },
+
   /** POST /orders/:orderId/payment — upload payment receipt (multipart) */
   uploadPayment: async (orderId: number, receipt: File): Promise<UploadPaymentData> => {
     const formData = new FormData();

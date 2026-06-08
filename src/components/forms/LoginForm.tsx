@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -24,6 +24,10 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginForm() {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawRedirect = searchParams.get('redirect');
+  const redirectTo =
+    rawRedirect?.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/profile';
   const error = useAppSelector((s) => s.auth.error);
   const loading = useAppSelector((s) => s.auth.loading);
   const session = useCustomerSession();
@@ -41,8 +45,8 @@ export default function LoginForm() {
   }, [dispatch]);
 
   useEffect(() => {
-    if (session) router.push('/profile');
-  }, [session, router]);
+    if (session) router.push(redirectTo);
+  }, [session, router, redirectTo]);
 
   const onSubmit = async (data: LoginCredentials) => {
     try {

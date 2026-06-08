@@ -10,7 +10,7 @@ import { productService } from '@/services/product.api';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageUrl } from '@/utils/getProductImageUrl';
 import type { Product } from '@/types/product.type';
-
+import Image from 'next/image';
 const PER_PAGE = 10;
 
 function parsePrice(price?: string) {
@@ -30,7 +30,7 @@ function ProductImageInner({ src, alt }: { src?: string; alt: string }) {
   }
 
   return (
-    <img
+    <Image
       src={url}
       alt={alt}
       width={50}
@@ -58,24 +58,25 @@ export default function ProductTable({ onEdit }: ProductTableProps) {
   const [page, setPage] = useState(1);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const loadProducts = async (cancelledRef?: { current: boolean }) => {
-    try {
-      const items = await productService.getAll();
-      if (!cancelledRef?.current) dispatch(setItems(items));
-    } catch (err: unknown) {
-      if (!cancelledRef?.current) {
-        const message = err instanceof Error ? err.message : 'Failed to load products';
-        setError(message);
-        toast.error(message);
-      }
-    } finally {
-      if (!cancelledRef?.current) setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    const cancelled = { current: false };
-    void loadProducts(cancelled);
+    let cancelled = false;
+
+    const loadProducts = async () => {
+      try {
+        const items = await productService.getAll();
+        if (!cancelled) dispatch(setItems(items));
+      } catch (err: unknown) {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Failed to load products';
+          setError(message);
+          toast.error(message);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    void loadProducts();
 
     const refreshOnFocus = () => {
       if (document.visibilityState === 'visible') {
@@ -87,7 +88,7 @@ export default function ProductTable({ onEdit }: ProductTableProps) {
     document.addEventListener('visibilitychange', refreshOnFocus);
 
     return () => {
-      cancelled.current = true;
+      cancelled = true;
       window.removeEventListener('focus', refreshOnFocus);
       document.removeEventListener('visibilitychange', refreshOnFocus);
     };

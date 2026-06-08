@@ -40,7 +40,7 @@ export interface Order {
   cus_id: number | null;
   payment_status: string | null;
   shipping_status: string | null;
-  payment_image: File | null;
+  payment_image: string | File | null;
   tracking_number: string | null;
   createdAt: string;
   updatedAt: string;
@@ -124,9 +124,124 @@ export function getOrderDate(order: Order): string {
   return order.date ?? order.createdAt;
 }
 
-export function formatStatusLabel(status: string | null | undefined): string {
+export function formatStatusLabel(status: string | null | undefined | File  ): string {
   if (!status) return '—';
+  if (status instanceof File) return '—';
   return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
+const PAYMENT_PAID_STATUSES = new Set([
+  'paid',
+  'verified',
+  'approved',
+  'completed',
+  'success',
+]);
+
+const PAYMENT_SUBMITTED_STATUSES = new Set([
+  'submitted',
+  'reviewing',
+  'processing',
+  'pending_review',
+  'uploaded',
+]);
+
+function hasPaymentReceipt(order: Pick<Order, 'payment_image'>): boolean {
+  const image = order.payment_image;
+  if (image == null) return false;
+  if (typeof image === 'string') return image.length > 0;
+  return true;
+}
+
+export function isOrderCancelled(order: Order): boolean {
+  return (order.shipping_status ?? '').toLowerCase().trim() === 'cancelled';
+}
+
+export function canCancelOrder(order: Order): boolean {
+  if (isOrderCancelled(order)) return false;
+  if (isPaymentComplete(order)) return false;
+  const shipping = (order.shipping_status ?? 'waiting').toLowerCase().trim();
+  return shipping === 'waiting' || shipping === 'processing';
+}
+
+export function isPaymentComplete(order: Order): boolean {
+  if (isOrderCancelled(order)) return false;
+  const status = order.payment_status?.toLowerCase().trim();
+  if (status === 'rejected' || status === 'failed') return false;
+  if (PAYMENT_PAID_STATUSES.has(status ?? '')) return true;
+  if (PAYMENT_SUBMITTED_STATUSES.has(status ?? '')) return true;
+  return hasPaymentReceipt(order);
+}
+
+export function isOrderAwaitingPayment(order: Order): boolean {
+  if (isOrderCancelled(order)) return false;
+  return !isPaymentComplete(order);
+}
+
+export function canUploadPaymentReceipt(order: Order): boolean {
+  if (isOrderCancelled(order)) return false;
+  return !isPaymentComplete(order);
+}
+
+export function getPaymentDisplayLabel(
+  status: string | null | undefined,
+  order?: Pick<Order, 'payment_image' | 'shipping_status'>,
+): string {
+  if (order && isOrderCancelled(order as Order)) return 'ยกเลิกแล้ว';
+
+  const orderLike = {
+    payment_status: status ?? null,
+    payment_image: order?.payment_image ?? null,
+    shipping_status: order?.shipping_status ?? null,
+  } as Order;
+
+  if (isPaymentComplete(orderLike)) return 'ชำระสำเร็จ';
+
+  const normalized = status?.toLowerCase().trim();
+  if (!normalized || normalized === 'pending' || normalized === 'unpaid' || normalized === 'waiting') {
+    return 'รอชำระเงิน';
+  }
+  if (normalized === 'rejected' || normalized === 'failed') return 'ชำระไม่สำเร็จ';
+  return formatStatusLabel(status);
+}
+
+export function getPaymentStatusTone(
+  status: string | null | undefined,
+  order?: Pick<Order, 'payment_image' | 'shipping_status'>,
+): 'pending' | 'submitted' | 'paid' | 'neutral' | 'cancelled' {
+  if (order && isOrderCancelled(order as Order)) return 'cancelled';
+
+  const orderLike = {
+    payment_status: status ?? null,
+    payment_image: order?.payment_image ?? null,
+    shipping_status: order?.shipping_status ?? null,
+  } as Order;
+
+  if (isPaymentComplete(orderLike)) return 'paid';
+
+  const normalized = status?.toLowerCase().trim();
+  if (!normalized || normalized === 'pending' || normalized === 'unpaid' || normalized === 'waiting') {
+    return 'pending';
+  }
+  if (PAYMENT_PAID_STATUSES.has(normalized)) return 'paid';
+  if (PAYMENT_SUBMITTED_STATUSES.has(normalized)) return 'submitted';
+  if (normalized === 'rejected' || normalized === 'failed') return 'pending';
+  return 'neutral';
+}
+
+export function getShippingDisplayLabel(status: string | null | undefined): string {
+  if (status?.toLowerCase().trim() === 'cancelled') return 'ยกเลิกแล้ว';
+  return formatStatusLabel(status);
+}
+
+export function getShippingStatusTone(
+  status: string | null | undefined,
+): 'pending' | 'submitted' | 'paid' | 'neutral' | 'cancelled' {
+  const normalized = status?.toLowerCase().trim();
+  if (normalized === 'cancelled') return 'cancelled';
+  if (normalized === 'delivered') return 'paid';
+  if (normalized === 'shipped' || normalized === 'processing') return 'submitted';
+  return 'neutral';
 }
 
 export function buildOrderStatsByCustomer(orders: Order[]): Map<number, CustomerOrderStats> {

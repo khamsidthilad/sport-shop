@@ -59,4 +59,16 @@ export function getBrandImageUrl(image?: unknown): string | null {
   return getProductImageUrl(image, 'brands');
 }
 
+export function getPaymentImageUrl(image?: unknown): string | null {
+  const normalized = normalizeProductImage(image);
+  if (!normalized) return null;
+
+  if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+    return normalized;
+  }
+
+  const path = normalized.startsWith('/') ? normalized : `/${normalized}`;
+  return `${API_MEDIA_PREFIX}${path}`;
+}
+
 export { API_MEDIA_PREFIX };

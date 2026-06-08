@@ -7,8 +7,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
-import { loginAdmin } from '@/redux/slices/authSlice';
+import { loginAdmin, logoutAdmin } from '@/redux/slices/authSlice';
 import { Sidebar } from '@/components/layouts/Sidebar';
+import { isStaffRole } from '@/types/user.type';
 
 const schema = z.object({
   username: z.string().trim().min(2).max(50),
@@ -23,16 +24,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const isAuthorized = !!admin && isStaffRole(admin.role);
+
   useEffect(() => {
     const id = window.setTimeout(() => setMounted(true), 0);
     return () => window.clearTimeout(id);
   }, []);
 
   useEffect(() => {
-    if (mounted && admin && pathname === '/administrator') {
+    if (mounted && admin && !isStaffRole(admin.role)) {
+      dispatch(logoutAdmin());
+    }
+  }, [admin, mounted, dispatch]);
+
+  useEffect(() => {
+    if (mounted && isAuthorized && pathname === '/administrator') {
       router.push('/administrator/dashboard');
     }
-  }, [admin, mounted, router, pathname]);
+  }, [isAuthorized, mounted, router, pathname]);
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({ resolver: zodResolver(schema) });
   const onSubmit = (data: FormData) => dispatch(loginAdmin(data));
@@ -45,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  if (!admin) {
+  if (!isAuthorized) {
     return (
       <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center px-4">
         <div className="w-full max-w-sm">

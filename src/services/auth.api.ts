@@ -9,6 +9,7 @@ import type {
   UpdateProfileResponse,
 } from '@/types/auth.type';
 import { toCustomerAuthData } from '@/types/auth.type';
+import { isStaffRole } from '@/types/user.type';
 import { api } from './api';
 
 async function fetchCustomerSession(
@@ -37,6 +38,9 @@ export const authService = {
   loginAdmin: async (credentials: LoginCredentials) => {
     const { data } = await api.post<AdminLoginResponse>('/auth/login', credentials);
     if (!data.success) throw new Error(data.message ?? 'Admin login failed');
+    if (!isStaffRole(data.user.role)) {
+      throw new Error('Access denied. Admin or staff account required.');
+    }
     return data;
   },
 
