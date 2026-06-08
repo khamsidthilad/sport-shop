@@ -30,3 +30,13 @@ export interface DeleteCategoryResponse {
   success: boolean;
   message?: string;
 }
+
+export function getCategoryLabel(category: Category): string {
+  return category.cate_name?.trim() || 'Category';
+}
+
+export function getCategoryHref(category: Category): string | null {
+  const id = category.cate_id;
+  if (typeof id !== 'number' || !Number.isFinite(id) || id < 1) return null;
+  return `/category/${id}`;
+}

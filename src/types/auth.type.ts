@@ -109,3 +109,23 @@ export interface AuthLoginResponse {
       customer,
     };
   }
+
+export function getDisplayName(session: CustomerAuthData): string {
+  const fromUser = `${session.user.name} ${session.user.sname}`.trim();
+  return fromUser || session.customer.cus_name;
+}
+
+export function getCustomerOrderId(session: CustomerAuthData): number {
+  return session.customer.cus_id;
+}
+
+export interface UpdateProfileInput {
+  Full_Name?: string;
+  tel?: string;
+  password?: string;
+}
+
+export interface UpdateProfileResponse {
+  success: boolean;
+  message?: string;
+}

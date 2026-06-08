@@ -5,6 +5,8 @@ import type {
   CustomerApiResponse,
   CustomerAuthData,
   AdminLoginResponse,
+  UpdateProfileInput,
+  UpdateProfileResponse,
 } from '@/types/auth.type';
 import { toCustomerAuthData } from '@/types/auth.type';
 import { api } from './api';
@@ -36,5 +38,10 @@ export const authService = {
     const { data } = await api.post<AdminLoginResponse>('/auth/login', credentials);
     if (!data.success) throw new Error(data.message ?? 'Admin login failed');
     return data;
+  },
+
+  updateProfile: async (input: UpdateProfileInput): Promise<void> => {
+    const { data } = await api.put<UpdateProfileResponse>('/users/me', input);
+    if (!data.success) throw new Error(data.message ?? 'Failed to update profile');
   },
 };

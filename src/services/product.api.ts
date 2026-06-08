@@ -18,6 +18,16 @@ function normalizeProduct(item: Product): Product {
   };
 }
 
+interface CategoryProductsResponse {
+  success?: boolean;
+  /** Backend typo — some endpoints return `succsess` instead of `success`. */
+  succsess?: boolean;
+  data?: {
+    products?: Product[];
+  };
+  message?: string;
+}
+
 export const productService = {
   getAll: async (): Promise<Product[]> => {
     const { data } = await api.get<GetAllProductsResponse>('/products/all');
@@ -25,15 +35,20 @@ export const productService = {
     return data.data.map(normalizeProduct);
   },
   getById: async (pro_id: number): Promise<Product> => {
-    const { data } = await api.get<GetProductResponse>(`/products/get/${pro_id}`);
+    const { data } = await api.get<GetProductResponse>(`/products/${pro_id}`);
     if (!data.success) throw new Error('Failed to load product');
     return normalizeProduct(data.data);
   },
 
   getByCateId: async (cate_id: number): Promise<Product[]> => {
-    const { data } = await api.get<GetAllProductsResponse>(`/products/getByCateId/${cate_id}`);
-    if (!data.success) throw new Error('Failed to load products');
-    return data.data.map(normalizeProduct);
+    const { data } = await api.get<CategoryProductsResponse>(
+      `/categories/${cate_id}/products`,
+    );
+    if (!data.success && !data.succsess) {
+      throw new Error(data.message ?? 'Failed to load products');
+    }
+    const products = data.data?.products ?? [];
+    return products.map(normalizeProduct);
   },
   getByBrandId: async (brand_id: number): Promise<Product[]> => {
     const { data } = await api.get<GetAllProductsResponse>(`/products/getByBrandId/${brand_id}`);
