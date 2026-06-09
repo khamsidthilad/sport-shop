@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import { store } from '../redux/store'
 import { setCustomerSession, setAdmin } from '@/redux/slices/authSlice'
 import { setItems } from '@/redux/slices/cartSlice'
+import { isStaffRole } from '@/types/user.type'
 
 function loadCustomerSession() {
   try {
@@ -17,7 +18,13 @@ function loadCustomerSession() {
 function loadAdminSession() {
   try {
     const raw = localStorage.getItem('auth_admin')
-    return raw ? JSON.parse(raw) : null
+    if (!raw) return null
+    const session = JSON.parse(raw)
+    if (!session?.role || !isStaffRole(session.role)) {
+      localStorage.removeItem('auth_admin')
+      return null
+    }
+    return session
   } catch {
     return null
   }

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAppDispatch } from '@/hooks/useAppDispatch';
@@ -212,10 +213,13 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
               className="w-full mt-1 px-3 py-2 border border-border bg-background file:mr-3 file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-bold file:uppercase"
             />
             {imagePreview && (
-              <img
+              <Image
                 src={imagePreview}
                 alt="Preview"
-                className="mt-2 w-24 h-24 object-cover border border-border"
+                width={96}
+                height={96}
+                unoptimized={imagePreview.startsWith('blob:')}
+                className="mt-2 object-cover border border-border"
               />
             )}
           </label>

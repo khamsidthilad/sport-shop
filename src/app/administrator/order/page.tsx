@@ -4,15 +4,22 @@ import { useEffect, useState } from 'react';
 import { Printer, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { orderService } from '@/services/order.api';
+import { PaymentQrImage } from '@/components/order/PaymentQrImage';
 import {
   formatStatusLabel,
   getOrderCustomerName,
   getOrderDate,
+  getPaymentDisplayLabel,
   SHIPPING_STATUSES,
   type Order,
   type ShippingStatus,
 } from '@/types/order.type';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { getPaymentImageUrl } from '@/utils/getProductImageUrl';
+
+function hasPaymentReceipt(order: Order): boolean {
+  return Boolean(getPaymentImageUrl(order.payment_image));
+}
 
 export default function OrderAdminPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -130,9 +137,28 @@ export default function OrderAdminPage() {
                       {formatCurrency(o.price ?? 0)}
                     </td>
                     <td className="p-3">
-                      <span className="text-xs px-2 py-0.5 bg-secondary">
-                        {formatStatusLabel(o.payment_status)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs px-2 py-0.5 bg-secondary">
+                          {getPaymentDisplayLabel(o.payment_status, o)}
+                        </span>
+                        {hasPaymentReceipt(o) && (
+                          <button
+                            type="button"
+                            onClick={() => setView(o.order_id)}
+                            className="overflow-hidden border border-border hover:opacity-80"
+                            title="View payment receipt"
+                          >
+                            <PaymentQrImage
+                              src={o.payment_image?.toString() ?? null}
+                              alt={`Payment receipt #${o.order_id}`}
+                              size={40}
+                              showQrFallback={false}
+                              emptyLabel=""
+                              className="object-cover"
+                            />
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3">
                       <select
@@ -197,7 +223,7 @@ export default function OrderAdminPage() {
               </div>
               <div>
                 <div className="text-xs text-muted-foreground uppercase">Payment</div>
-                {formatStatusLabel(detail.payment_status)}
+                {getPaymentDisplayLabel(detail.payment_status, detail)}
               </div>
               <div>
                 <div className="text-xs text-muted-foreground uppercase">Shipping</div>
@@ -212,6 +238,25 @@ export default function OrderAdminPage() {
                 {detail.customer?.address || '—'}
               </div>
             </div>
+
+            <div className="mt-4 border-t border-border pt-4">
+              <div className="text-xs text-muted-foreground uppercase mb-3">
+                Payment receipt
+              </div>
+              {hasPaymentReceipt(detail) ? (
+                <PaymentQrImage
+                  src={detail.payment_image?.toString() ?? null}
+                  alt={`Payment receipt for order #${detail.order_id}`}
+                  size={280}
+                  showQrFallback={false}
+                  emptyLabel="No payment receipt uploaded"
+                  className="mx-auto border border-border object-contain bg-secondary"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">No payment receipt uploaded yet.</p>
+              )}
+            </div>
+
             <table className="w-full text-sm mt-4 border-t border-border">
               <thead>
                 <tr className="text-left text-xs uppercase">

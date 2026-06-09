@@ -10,6 +10,7 @@ import type {
   RegisterInput,
   CustomerAuthData,
 } from '@/types/auth.type';
+import { isStaffRole } from '@/types/user.type';
 
 const CUSTOMER_STORAGE_KEY = 'auth_session';
 const ADMIN_STORAGE_KEY = 'auth_admin';
@@ -133,6 +134,10 @@ const authSlice = createSlice({
           state.loading = false;
           state.customerSession = action.payload;
           persistCustomerSession(action.payload);
+          if (state.admin && !isStaffRole(state.admin.role)) {
+            state.admin = null;
+            persistAdminSession(null);
+          }
         })
         .addCase(thunk.rejected, (state, action) => {
           state.loading = false;

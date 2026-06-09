@@ -49,6 +49,10 @@ export interface DeleteUserResponse {
   message?: string;
 }
 
+export function isStaffRole(role: string): boolean {
+  return role === 'admin' || role === 'staff';
+}
+
 export function isStaffUser(user: User): boolean {
-  return user.role === 'admin' || user.role === 'staff';
+  return isStaffRole(user.role);
 }

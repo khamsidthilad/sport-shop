@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { ShoppingCart, Eye } from 'lucide-react';
@@ -20,17 +21,19 @@ function ProductImage({ src, alt }: { src?: string; alt: string }) {
 
   if (!url || failed) {
     return (
-      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-secondary to-muted font-display text-8xl opacity-20">
+      <div className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-secondary to-muted font-display text-8xl opacity-20">
         {alt.charAt(0)}
       </div>
     );
   }
 
   return (
-    <img
+    <Image
       src={url}
       alt={alt}
-      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+      fill
+      sizes="(max-width: 768px) 50vw, 25vw"
+      className="object-cover transition-transform duration-500 group-hover:scale-110"
       onError={() => setFailed(true)}
     />
   );
@@ -53,7 +56,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <div className="group relative overflow-hidden border border-border bg-card transition-all hover:-translate-y-1 hover:shadow-bold">
       <Link href={productHref} className="block">
-        <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-secondary to-muted">
+        <div className="relative aspect-square overflow-hidden bg-linear-to-br from-secondary to-muted">
           <ProductImage src={product.pro_image} alt={name} />
           {!inStock && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80">

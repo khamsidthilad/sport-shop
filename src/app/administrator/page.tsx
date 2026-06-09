@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppSelector } from '@/hooks/useAppSelector';
+import { isStaffRole } from '@/types/user.type';
 
 /** Entry route for /administrator — login UI lives in layout.tsx */
 export default function AdministratorPage() {
@@ -10,7 +11,7 @@ export default function AdministratorPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (admin) {
+    if (admin && isStaffRole(admin.role)) {
       router.replace('/administrator/dashboard');
     }
   }, [admin, router]);

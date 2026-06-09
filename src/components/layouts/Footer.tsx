@@ -41,7 +41,7 @@ export function Footer() {
           <h4 className="font-display text-lg mb-3">Company</h4>
           <ul className="space-y-2 text-sm opacity-80">
             <li><Link href="/shop">About Us</Link></li>
-            <li><Link href="/shop">Contact</Link></li>
+            <li><Link href="/contact">Contact</Link></li>
             <li><a href="#">Privacy</a></li>
           </ul>
         </div>

@@ -19,40 +19,49 @@ export default function CategoryPage() {
 
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [failedCateId, setFailedCateId] = useState<number | null>(null);
+
+  const notFound = validId && failedCateId === cateId;
+  const loading = validId && category?.cate_id !== cateId && failedCateId !== cateId;
 
   useEffect(() => {
-    if (!validId) {
-      setNotFound(true);
-      setLoading(false);
-      return;
-    }
+    if (!validId) return;
 
     let cancelled = false;
-    setLoading(true);
-    setNotFound(false);
 
     Promise.all([categoryService.getById(cateId), productService.getByCateId(cateId)])
       .then(([categoryItem, productItems]) => {
         if (cancelled) return;
+        setFailedCateId(null);
         setCategory(categoryItem);
         setProducts(productItems);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        setNotFound(true);
+        setCategory(null);
+        setProducts([]);
+        setFailedCateId(cateId);
         const message = err instanceof Error ? err.message : 'Failed to load category';
         toast.error(message);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
       });
 
     return () => {
       cancelled = true;
     };
   }, [cateId, validId]);
+
+  if (!validId) {
+    return (
+      <CustomerLayout>
+        <div className="py-20 text-center">
+          <h1 className="font-display text-4xl">Category not found</h1>
+          <Link href="/shop" className="mt-4 inline-block text-accent-brand underline">
+            Back to shop
+          </Link>
+        </div>
+      </CustomerLayout>
+    );
+  }
 
   if (loading) {
     return (

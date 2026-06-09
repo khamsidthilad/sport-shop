@@ -1,68 +1,179 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { Package, FolderTree, Users, ShoppingBag, TrendingUp } from 'lucide-react';
-import { useAppSelector } from '@/hooks/useAppSelector';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
+import { toast } from 'sonner';
+import { categoryService } from '@/services/category.api';
+import { customerService } from '@/services/customer.api';
+import { orderService } from '@/services/order.api';
+import { productService } from '@/services/product.api';
+import type { Category } from '@/types/category.type';
+import {
+  formatStatusLabel,
+  getOrderCustomerName,
+  getOrderDate,
+  type Order,
+} from '@/types/order.type';
+import type { Product } from '@/types/product.type';
 import { formatCurrency } from '@/utils/formatCurrency';
+import {
+  buildCategorySales,
+  buildMonthlySales,
+  getRecentOrders,
+  getTotalRevenue,
+} from '@/utils/dashboardStats';
 
-const COLORS = ['oklch(0.62 0.24 25)', 'oklch(0.08 0 0)', 'oklch(0.45 0 0)', 'oklch(0.7 0.15 50)', 'oklch(0.55 0.18 200)', 'oklch(0.6 0.18 140)', 'oklch(0.65 0.2 280)', 'oklch(0.55 0.15 320)'];
+const COLORS = [
+  'oklch(0.62 0.24 25)',
+  'oklch(0.08 0 0)',
+  'oklch(0.45 0 0)',
+  'oklch(0.7 0.15 50)',
+  'oklch(0.55 0.18 200)',
+  'oklch(0.6 0.18 140)',
+  'oklch(0.65 0.2 280)',
+  'oklch(0.55 0.15 320)',
+];
 
 export default function Dashboard() {
-  const products = useAppSelector((s) => s.product.items);
-  const categories = useAppSelector((s) => s.category.items);
-  const customers = useAppSelector((s) => s.customer.items);
-  const orders = useAppSelector((s) => s.order.items);
-  const monthly = useAppSelector((s) => s.dashboard.monthlySales);
-  const catSales = useAppSelector((s) => s.dashboard.categorySales);
-  const revenue = orders.reduce((s, o) => s + o.total, 0);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [customerCount, setCustomerCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    Promise.all([
+      productService.getAll(),
+      categoryService.getAll(),
+      customerService.getAll(),
+      orderService.getReport(),
+    ])
+      .then(([productItems, categoryItems, customerItems, orderItems]) => {
+        if (cancelled) return;
+        setProducts(productItems);
+        setCategories(categoryItems);
+        setCustomerCount(customerItems.length);
+        setOrders(orderItems);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Failed to load dashboard data';
+          setError(message);
+          toast.error(message);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const monthly = useMemo(() => buildMonthlySales(orders), [orders]);
+  const catSales = useMemo(
+    () => buildCategorySales(orders, categories, products),
+    [orders, categories, products],
+  );
+  const revenue = useMemo(() => getTotalRevenue(orders), [orders]);
+  const recentOrders = useMemo(() => getRecentOrders(orders), [orders]);
 
   const stats = [
-    { label: 'Total Products', value: products.length, icon: Package, color: 'bg-blue-500' },
-    { label: 'Total Categories', value: categories.length, icon: FolderTree, color: 'bg-green-500' },
-    { label: 'Total Customers', value: customers.length, icon: Users, color: 'bg-purple-500' },
-    { label: 'Total Orders', value: orders.length, icon: ShoppingBag, color: 'bg-orange-500' },
-    { label: 'Total Revenue', value: formatCurrency(revenue), icon: TrendingUp, color: 'bg-accent-brand' },
+    { label: 'Total Products', value: loading ? '…' : products.length, icon: Package, color: 'bg-blue-500' },
+    { label: 'Total Categories', value: loading ? '…' : categories.length, icon: FolderTree, color: 'bg-green-500' },
+    { label: 'Total Customers', value: loading ? '…' : customerCount, icon: Users, color: 'bg-purple-500' },
+    { label: 'Total Orders', value: loading ? '…' : orders.length, icon: ShoppingBag, color: 'bg-orange-500' },
+    {
+      label: 'Total Revenue',
+      value: loading ? '…' : formatCurrency(revenue),
+      icon: TrendingUp,
+      color: 'bg-accent-brand',
+    },
   ];
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="space-y-8 p-8">
       <div>
         <h1 className="font-display text-4xl">DASHBOARD</h1>
-        <p className="text-muted-foreground">Welcome back, here&apos;s what&apos;s happening.</p>
+        <p className="text-muted-foreground">
+          {loading ? 'Loading dashboard data…' : "Welcome back, here's what's happening."}
+        </p>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+
+      {error && (
+        <p className="border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          {error}
+        </p>
+      )}
+
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
         {stats.map((s) => (
-          <div key={s.label} className="bg-card border border-border p-5">
-            <div className={`w-10 h-10 ${s.color} text-white flex items-center justify-center mb-3`}>
-              <s.icon className="w-5 h-5" />
+          <div key={s.label} className="border border-border bg-card p-5">
+            <div className={`mb-3 flex h-10 w-10 items-center justify-center text-white ${s.color}`}>
+              <s.icon className="h-5 w-5" />
             </div>
             <div className="text-xs uppercase tracking-wider text-muted-foreground">{s.label}</div>
-            <div className="font-display text-2xl mt-1">{s.value}</div>
+            <div className="mt-1 font-display text-2xl">{s.value}</div>
           </div>
         ))}
       </div>
-      <div className="grid lg:grid-cols-2 gap-6">
-        <div className="bg-card border border-border p-6">
-          <h3 className="font-display text-xl mb-4">MONTHLY SALES (REVENUE)</h3>
-          {monthly.length > 0 ? (
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="border border-border bg-card p-6">
+          <h3 className="mb-4 font-display text-xl">MONTHLY SALES (REVENUE)</h3>
+          {loading ? (
+            <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
+              Loading chart…
+            </div>
+          ) : monthly.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={monthly}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.9 0 0)" />
                 <XAxis dataKey="month" stroke="oklch(0.45 0 0)" />
                 <YAxis stroke="oklch(0.45 0 0)" />
                 <Tooltip />
-                <Line type="monotone" dataKey="sales" stroke="oklch(0.62 0.24 25)" strokeWidth={3} dot={{ r: 4 }} />
+                <Line
+                  type="monotone"
+                  dataKey="sales"
+                  stroke="oklch(0.62 0.24 25)"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="min-h-65 flex items-center justify-center text-sm text-muted-foreground">
+            <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
               No monthly sales data available.
             </div>
           )}
         </div>
-        <div className="bg-card border border-border p-6">
-          <h3 className="font-display text-xl mb-4">ORDERS PER MONTH</h3>
-          {monthly.length > 0 ? (
+
+        <div className="border border-border bg-card p-6">
+          <h3 className="mb-4 font-display text-xl">ORDERS PER MONTH</h3>
+          {loading ? (
+            <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
+              Loading chart…
+            </div>
+          ) : monthly.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={monthly}>
                 <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.9 0 0)" />
@@ -73,48 +184,66 @@ export default function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="min-h-65 flex items-center justify-center text-sm text-muted-foreground">
+            <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
               No monthly order data available.
             </div>
           )}
         </div>
-        <div className="bg-card border border-border p-6">
-          <h3 className="font-display text-xl mb-4">SALES BY CATEGORY</h3>
-          {catSales.length > 0 ? (
+
+        <div className="border border-border bg-card p-6">
+          <h3 className="mb-4 font-display text-xl">SALES BY CATEGORY</h3>
+          {loading ? (
+            <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
+              Loading chart…
+            </div>
+          ) : catSales.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
                 <Pie data={catSales} dataKey="sales" nameKey="name" outerRadius={90} label>
-                  {catSales.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  {catSales.map((_, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                  ))}
                 </Pie>
                 <Tooltip />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="min-h-65 flex items-center justify-center text-sm text-muted-foreground">
+            <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
               No category sales available.
             </div>
           )}
         </div>
-        <div className="bg-card border border-border p-6">
-          <h3 className="font-display text-xl mb-4">RECENT ORDERS</h3>
-          {orders.length > 0 ? (
+
+        <div className="border border-border bg-card p-6">
+          <h3 className="mb-4 font-display text-xl">RECENT ORDERS</h3>
+          {loading ? (
+            <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
+              Loading orders…
+            </div>
+          ) : recentOrders.length > 0 ? (
             <div className="space-y-2">
-              {orders.slice(0, 6).map((o) => (
-                <div key={o.id} className="flex justify-between items-center py-2 border-b border-border last:border-0 text-sm">
+              {recentOrders.map((order) => (
+                <div
+                  key={order.order_id}
+                  className="flex items-center justify-between border-b border-border py-2 text-sm last:border-0"
+                >
                   <div>
-                    <div className="font-semibold">{o.id}</div>
-                    <div className="text-xs text-muted-foreground">{o.customerName}</div>
+                    <div className="font-semibold">#{order.order_id}</div>
+                    <div className="text-xs text-muted-foreground">{getOrderCustomerName(order)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(getOrderDate(order)).toLocaleDateString()}
+                    </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold">{formatCurrency(o.total)}</div>
-                    <div className="text-xs">{o.status}</div>
+                    <div className="font-bold">{formatCurrency(Number(order.price ?? 0))}</div>
+                    <div className="text-xs">{formatStatusLabel(order.shipping_status)}</div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="min-h-65 flex items-center justify-center text-sm text-muted-foreground">
+            <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
               No recent orders available.
             </div>
           )}

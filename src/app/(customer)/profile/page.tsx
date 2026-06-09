@@ -11,11 +11,13 @@ import { logoutCustomer } from '@/redux/slices/authSlice';
 import { authService } from '@/services/auth.api';
 import { orderService } from '@/services/order.api';
 import { CustomerLayout } from '@/components/layouts/CustomerLayout';
+import { OrderStatusBadge } from '@/components/order/OrderStatusBadge';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getDisplayName } from '@/types/auth.type';
 import {
-  formatStatusLabel,
+  canCancelOrder,
   getOrderDate,
+  isOrderAwaitingPayment,
   type Order,
 } from '@/types/order.type';
 
@@ -35,6 +37,7 @@ export default function ProfilePage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [updatingPassword, setUpdatingPassword] = useState(false);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!session) {
@@ -44,29 +47,63 @@ export default function ProfilePage() {
 
     let cancelled = false;
 
-    orderService
-      .getByCustomerId(session.customer.cus_id)
-      .then((items) => {
-        if (!cancelled) setOrders(items);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load orders';
-          toast.error(message);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setOrdersLoading(false);
-      });
+    const loadOrders = (showLoading = true) => {
+      if (showLoading) setOrdersLoading(true);
+
+      orderService
+        .getByCustomerId(session.customer.cus_id)
+        .then((items) => {
+          if (!cancelled) setOrders(items);
+        })
+        .catch((err: unknown) => {
+          if (!cancelled) {
+            const message = err instanceof Error ? err.message : 'Failed to load orders';
+            toast.error(message);
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setOrdersLoading(false);
+        });
+    };
+
+    loadOrders();
+
+    const refreshOrders = () => loadOrders(false);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refreshOrders();
+    };
+
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', refreshOrders);
 
     return () => {
       cancelled = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', refreshOrders);
     };
   }, [session, router]);
 
   if (!session) return null;
 
   const { customer, user } = session;
+
+  const handleCancelOrder = async (order: Order) => {
+    if (!confirm(`ยกเลิก order #${order.order_id}?`)) return;
+
+    setCancellingId(order.order_id);
+    try {
+      const updated = await orderService.cancel(order.order_id);
+      setOrders((prev) =>
+        prev.map((item) => (item.order_id === updated.order_id ? updated : item)),
+      );
+      toast.success('ยกเลิก order สำเร็จ');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to cancel order';
+      toast.error(message);
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,7 +209,7 @@ export default function ProfilePage() {
                   {orders.map((o) => (
                     <div
                       key={o.order_id}
-                      className="flex items-center justify-between border border-border p-3"
+                      className="flex flex-col gap-3 border border-border p-3 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div>
                         <div className="font-semibold">#{o.order_id}</div>
@@ -181,11 +218,41 @@ export default function ProfilePage() {
                           {o.billDetails?.length ?? 0} items
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="flex flex-col items-start gap-2 sm:items-end">
                         <div className="font-bold">{formatCurrency(o.price ?? 0)}</div>
-                        <span className="bg-secondary px-2 py-0.5 text-xs">
-                          {formatStatusLabel(o.shipping_status)}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          <OrderStatusBadge
+                            label="Payment"
+                            status={o.payment_status}
+                            kind="payment"
+                            order={o}
+                          />
+                          <OrderStatusBadge
+                            label="Shipping"
+                            status={o.shipping_status}
+                            kind="shipping"
+                          />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {isOrderAwaitingPayment(o) && (
+                            <Link
+                              href={`/checkout?orderId=${o.order_id}`}
+                              className="bg-accent-brand px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-accent-foreground hover:opacity-90"
+                            >
+                              Pay now
+                            </Link>
+                          )}
+                          {canCancelOrder(o) && (
+                            <button
+                              type="button"
+                              onClick={() => void handleCancelOrder(o)}
+                              disabled={cancellingId === o.order_id}
+                              className="border border-destructive px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-destructive hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
+                            >
+                              {cancellingId === o.order_id ? 'Cancelling…' : 'Cancel order'}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
