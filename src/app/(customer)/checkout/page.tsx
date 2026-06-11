@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
@@ -28,6 +28,7 @@ import {
   type Order,
 } from '@/types/order.type';
 import type { Product } from '@/types/product.type';
+import { FormNumberField } from '@/components/forms/FormNumberField';
 import { lo, statusLabel } from '@/lib/lao';
 
 const schema = z.object({
@@ -163,6 +164,7 @@ export default function CheckoutPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
@@ -460,7 +462,20 @@ export default function CheckoutPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label={lo.checkout.fullName} error={errors.fullName?.message} {...register('fullName')} />
                 <Field label={lo.common.email} type="email" error={errors.email?.message} {...register('email')} />
-                <Field label={lo.common.tel} error={errors.tel?.message} {...register('tel')} />
+                <Controller
+                  name="tel"
+                  control={control}
+                  render={({ field }) => (
+                    <FormNumberField
+                      label={lo.common.tel}
+                      mode="digits"
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      error={errors.tel?.message}
+                      maxLength={20}
+                    />
+                  )}
+                />
               </div>
             </section>
             <section className="border border-border p-6">
@@ -469,10 +484,19 @@ export default function CheckoutPage() {
                 <Field label={lo.common.address} error={errors.address?.message} {...register('address')} />
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label={lo.checkout.city} error={errors.city?.message} {...register('city')} />
-                  <Field
-                    label={lo.checkout.postalCode}
-                    error={errors.postalCode?.message}
-                    {...register('postalCode')}
+                  <Controller
+                    name="postalCode"
+                    control={control}
+                    render={({ field }) => (
+                      <FormNumberField
+                        label={lo.checkout.postalCode}
+                        mode="digits"
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        error={errors.postalCode?.message}
+                        maxLength={10}
+                      />
+                    )}
                   />
                 </div>
               </div>

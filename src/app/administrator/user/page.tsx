@@ -9,6 +9,7 @@ import { addItem, setItems } from '@/redux/slices/userSlice';
 import { userService } from '@/services/user.api';
 import type { CreateUserInput, UpdateUserInput, User } from '@/types/user.type';
 import { isStaffUser } from '@/types/user.type';
+import { NumberFormatInput } from '@/components/ui/NumberFormatInput';
 import { lo, statusLabel } from '@/lib/lao';
 
 function emptyCreateInput(): CreateUserInput {
@@ -113,9 +114,11 @@ function UserModal({
           </label>
           <label className="block">
             <span className="text-xs font-bold uppercase">{lo.auth.telephone}</span>
-            <input
+            <NumberFormatInput
+              mode="digits"
               value={form.tel ?? ''}
-              onChange={(e) => setForm({ ...form, tel: e.target.value })}
+              onValueChange={(v) => setForm({ ...form, tel: String(v) })}
+              maxLength={15}
               className="mt-1 w-full border border-border bg-background px-3 py-2"
             />
           </label>

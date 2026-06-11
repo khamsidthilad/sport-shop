@@ -10,6 +10,7 @@ import type { CreateImportInput, ImportRecord } from '@/types/import.type';
 import { getImportPrice, getImportTotal } from '@/types/import.type';
 import type { Product } from '@/types/product.type';
 import type { Supplier } from '@/types/supplier.type';
+import { NumberFormatInput } from '@/components/ui/NumberFormatInput';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { lo } from '@/lib/lao';
 
@@ -96,11 +97,10 @@ function ImportModal({
 
         <label className="block">
           <span className="text-xs font-bold uppercase">{lo.common.quantity}</span>
-          <input
-            type="number"
-            min={1}
+          <NumberFormatInput
+            mode="integer"
             value={form.quantity}
-            onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
+            onValueChange={(v) => setForm({ ...form, quantity: Number(v) })}
             required
             className="mt-1 w-full border border-border bg-background px-3 py-2"
           />
@@ -108,12 +108,10 @@ function ImportModal({
 
         <label className="block">
           <span className="text-xs font-bold uppercase">{lo.common.price}</span>
-          <input
-            type="number"
-            min={0}
-            step="1"
+          <NumberFormatInput
+            mode="integer"
             value={form.price}
-            onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+            onValueChange={(v) => setForm({ ...form, price: Number(v) })}
             required
             className="mt-1 w-full border border-border bg-background px-3 py-2"
           />
