@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
@@ -10,6 +10,7 @@ import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { useAppSelector } from '@/hooks/useAppSelector';
 import { registerCustomer, logoutCustomer } from '@/redux/slices/authSlice';
 import type { RegisterInput } from '@/types/auth.type';
+import { FormNumberField } from '@/components/forms/FormNumberField';
 import { CustomerLayout } from '@/components/layouts/CustomerLayout';
 import { lo } from '@/lib/lao';
 
@@ -45,6 +46,7 @@ export default function RegisterForm() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormValues>({
@@ -83,7 +85,20 @@ export default function RegisterForm() {
             error={errors.dateOfBirth?.message}
             {...register('dateOfBirth')}
           />
-          <FieldR label={lo.auth.telephone} error={errors.tel?.message} {...register('tel')} />
+          <Controller
+            name="tel"
+            control={control}
+            render={({ field }) => (
+              <FormNumberField
+                label={lo.auth.telephone}
+                mode="digits"
+                value={field.value}
+                onValueChange={field.onChange}
+                error={errors.tel?.message}
+                maxLength={20}
+              />
+            )}
+          />
           <FieldR label={lo.common.username} error={errors.username?.message} {...register('username')} />
           <FieldR
             label={lo.common.password}

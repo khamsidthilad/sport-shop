@@ -10,6 +10,7 @@ import { categoryService } from '@/services/category.api';
 import { brandService } from '@/services/brand.api';
 import type { CreateProductInput, UpdateProductInput } from '@/types/createPro';
 import type { Brand, Category, Product } from '@/types/product.type';
+import { NumberFormatInput } from '@/components/ui/NumberFormatInput';
 import { getProductImageUrl } from '@/utils/getProductImageUrl';
 import { lo } from '@/lib/lao';
 
@@ -189,20 +190,26 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
               disabled={optionsLoading}
               placeholder={optionsLoading ? lo.product.loadingCategories : lo.product.selectCategory}
             />
-            <Inp
-              label={lo.common.price}
-              type="number"
-              value={form.pro_price ?? '0'}
-              onChange={(v) => setForm({ ...form, pro_price: v })}
-              required
-            />
-            <Inp
-              label={lo.common.quantity}
-              type="number"
-              value={String(form.pro_qty)}
-              onChange={(v) => setForm({ ...form, pro_qty: +v })}
-              required
-            />
+            <label className="block">
+              <span className="text-xs uppercase font-bold tracking-widest">{lo.common.price}</span>
+              <NumberFormatInput
+                mode="integer"
+                value={form.pro_price ?? '0'}
+                onValueChange={(v) => setForm({ ...form, pro_price: String(v) })}
+                required
+                className="w-full mt-1 px-3 py-2 border border-border bg-background"
+              />
+            </label>
+            <label className="block">
+              <span className="text-xs uppercase font-bold tracking-widest">{lo.common.quantity}</span>
+              <NumberFormatInput
+                mode="integer"
+                value={form.pro_qty}
+                onValueChange={(v) => setForm({ ...form, pro_qty: Number(v) })}
+                required
+                className="w-full mt-1 px-3 py-2 border border-border bg-background"
+              />
+            </label>
           </div>
           <label className="block">
             <span className="text-xs uppercase font-bold tracking-widest">{lo.product.image}</span>

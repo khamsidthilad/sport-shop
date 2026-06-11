@@ -9,6 +9,7 @@ import { addItem, setItems } from '@/redux/slices/supplierSlice';
 import { productService } from '@/services/product.api';
 import { supplierService } from '@/services/supplier.api';
 import type { Product } from '@/types/product.type';
+import { NumberFormatInput } from '@/components/ui/NumberFormatInput';
 import type {
   CreateSupplierInput,
   Supplier,
@@ -65,9 +66,11 @@ function SupplierModal({ supplier, products, onSave, onClose, submitting }: { su
           </label>
           <label className="block">
             <span className="text-xs font-bold uppercase">{lo.auth.telephone}</span>
-            <input
+            <NumberFormatInput
+              mode="digits"
               value={form.Tel ?? ''}
-              onChange={(e) => setForm({ ...form, Tel: e.target.value })}
+              onValueChange={(v) => setForm({ ...form, Tel: String(v) })}
+              maxLength={15}
               className="mt-1 w-full border border-border bg-background px-3 py-2"
             />
           </label>

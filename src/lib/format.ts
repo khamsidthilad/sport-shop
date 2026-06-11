@@ -1,2 +1,4 @@
-export const formatPrice = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'THB', maximumFractionDigits: 0 }).format(n);
+import { formatCurrency, formatNumber } from '@/utils/formatCurrency';
+
+export { formatCurrency, formatNumber };
+export const formatPrice = formatCurrency;
