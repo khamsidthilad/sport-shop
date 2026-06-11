@@ -8,6 +8,7 @@ import { useAppSelector } from '@/hooks/useAppSelector';
 import { addItem, setItems } from '@/redux/slices/categorySlice';
 import { categoryService } from '@/services/category.api';
 import type { Category } from '@/types/category.type';
+import { lo } from '@/lib/lao';
 
 function CategoryModal({
   category,
@@ -25,7 +26,7 @@ function CategoryModal({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-card max-w-md w-full p-6">
-        <h2 className="font-display text-2xl mb-4">{category ? 'EDIT' : 'ADD'} CATEGORY</h2>
+        <h2 className="font-display text-2xl mb-4">{category ? lo.admin.editCategory : lo.admin.addCategory}</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -34,7 +35,7 @@ function CategoryModal({
           className="space-y-3"
         >
           <label className="block">
-            <span className="text-xs uppercase font-bold">Name</span>
+            <span className="text-xs uppercase font-bold">{lo.common.name}</span>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -44,14 +45,14 @@ function CategoryModal({
           </label>
           <div className="flex gap-2 justify-end">
             <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 border border-border">
-              Cancel
+              {lo.common.cancel}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="bg-primary text-primary-foreground px-4 py-2 font-bold uppercase text-sm disabled:opacity-50"
             >
-              {submitting ? 'Saving…' : 'Save'}
+              {submitting ? lo.common.saving : lo.common.save}
             </button>
           </div>
         </form>
@@ -80,7 +81,7 @@ export default function CategoryAdminPage() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load categories';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadCategories;
           setError(message);
           toast.error(message);
         }
@@ -101,7 +102,7 @@ export default function CategoryAdminPage() {
 
   const handleSave = async (cate_name: string) => {
     if (!cate_name) {
-      toast.error('Category name is required');
+      toast.error(lo.admin.categoryNameRequired);
       return;
     }
 
@@ -110,15 +111,15 @@ export default function CategoryAdminPage() {
       if (editing) {
         const updated = await categoryService.update({ cate_id: editing.cate_id, cate_name });
         dispatch(setItems(categories.map((c) => (c.cate_id === updated.cate_id ? updated : c))));
-        toast.success('Category updated');
+        toast.success(lo.admin.categoryUpdated);
       } else {
         const created = await categoryService.create({ cate_name });
         dispatch(addItem(created));
-        toast.success('Category created');
+        toast.success(lo.admin.categoryCreated);
       }
       closeModal();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to save category';
+      const message = err instanceof Error ? err.message : lo.toast.failedSaveCategory;
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -126,15 +127,15 @@ export default function CategoryAdminPage() {
   };
 
   const handleDelete = async (category: Category) => {
-    if (!confirm(`Delete "${category.cate_name}"?`)) return;
+    if (!confirm(lo.admin.deleteConfirm(category.cate_name))) return;
 
     setDeletingId(category.cate_id);
     try {
       await categoryService.delete(category.cate_id);
       dispatch(setItems(categories.filter((c) => c.cate_id !== category.cate_id)));
-      toast.success('Category deleted');
+      toast.success(lo.admin.categoryDeleted);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete category';
+      const message = err instanceof Error ? err.message : lo.toast.failedDeleteCategory;
       toast.error(message);
     } finally {
       setDeletingId(null);
@@ -145,9 +146,9 @@ export default function CategoryAdminPage() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl">CATEGORIES</h1>
+          <h1 className="font-display text-3xl">{lo.admin.categories}</h1>
           <p className="text-muted-foreground">
-            {loading ? 'Loading…' : `${categories.length} total`}
+            {loading ? lo.common.loading : lo.admin.total(categories.length)}
           </p>
         </div>
         <button
@@ -158,7 +159,7 @@ export default function CategoryAdminPage() {
           }}
           className="bg-accent-brand text-accent-foreground px-4 py-2 font-bold uppercase text-sm flex items-center gap-2"
         >
-          <Plus className="w-4 h-4" /> Add
+          <Plus className="w-4 h-4" /> {lo.common.add}
         </button>
       </div>
 
@@ -170,11 +171,11 @@ export default function CategoryAdminPage() {
 
       {loading ? (
         <div className="bg-card border border-border p-12 text-center text-muted-foreground">
-          Loading categories…
+          {lo.admin.loadingCategories}
         </div>
       ) : categories.length === 0 ? (
         <div className="bg-card border border-border p-12 text-center text-muted-foreground">
-          No categories found.
+          {lo.admin.noCategories}
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -184,7 +185,7 @@ export default function CategoryAdminPage() {
             return (
               <div key={c.cate_id} className="bg-card border border-border p-4">
                 <div className="font-semibold">{c.cate_name}</div>
-                <div className="text-xs text-muted-foreground mt-1">ID: {c.cate_id}</div>
+                <div className="text-xs text-muted-foreground mt-1">{lo.admin.id}: {c.cate_id}</div>
                 <div className="flex gap-1 mt-3">
                   <button
                     type="button"
@@ -195,7 +196,7 @@ export default function CategoryAdminPage() {
                     disabled={isDeleting}
                     className="flex-1 border border-border py-1 hover:bg-secondary text-xs flex items-center justify-center gap-1 disabled:opacity-50"
                   >
-                    <Pencil className="w-3 h-3" /> Edit
+                    <Pencil className="w-3 h-3" /> {lo.common.edit}
                   </button>
                   <button
                     type="button"

@@ -9,6 +9,7 @@ import { addItem, setItems } from '@/redux/slices/userSlice';
 import { userService } from '@/services/user.api';
 import type { CreateUserInput, UpdateUserInput, User } from '@/types/user.type';
 import { isStaffUser } from '@/types/user.type';
+import { lo, statusLabel } from '@/lib/lao';
 
 function emptyCreateInput(): CreateUserInput {
   return {
@@ -47,7 +48,7 @@ function UserModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md bg-card p-6 max-h-[90vh] overflow-auto">
-        <h2 className="mb-4 font-display text-2xl">{user ? 'EDIT' : 'ADD'} USER</h2>
+        <h2 className="mb-4 font-display text-2xl">{user ? lo.admin.editUser : lo.admin.addUserTitle}</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -65,7 +66,7 @@ function UserModal({
             }
 
             if (!form.password) {
-              toast.error('Password is required');
+              toast.error(lo.admin.passwordRequired);
               return;
             }
 
@@ -80,7 +81,7 @@ function UserModal({
           className="space-y-3"
         >
           <label className="block">
-            <span className="text-xs font-bold uppercase">Full Name</span>
+            <span className="text-xs font-bold uppercase">{lo.auth.fullName}</span>
             <input
               value={form.Full_Name}
               onChange={(e) => setForm({ ...form, Full_Name: e.target.value })}
@@ -89,7 +90,7 @@ function UserModal({
             />
           </label>
           <label className="block">
-            <span className="text-xs font-bold uppercase">Email</span>
+            <span className="text-xs font-bold uppercase">{lo.common.email}</span>
             <input
               type="email"
               value={form.Email}
@@ -100,7 +101,7 @@ function UserModal({
           </label>
           <label className="block">
             <span className="text-xs font-bold uppercase">
-              Password{user ? ' (leave blank to keep)' : ''}
+              {user ? lo.admin.passwordKeep : lo.common.password}
             </span>
             <input
               type="password"
@@ -111,7 +112,7 @@ function UserModal({
             />
           </label>
           <label className="block">
-            <span className="text-xs font-bold uppercase">Telephone</span>
+            <span className="text-xs font-bold uppercase">{lo.auth.telephone}</span>
             <input
               value={form.tel ?? ''}
               onChange={(e) => setForm({ ...form, tel: e.target.value })}
@@ -119,7 +120,7 @@ function UserModal({
             />
           </label>
           <label className="block">
-            <span className="text-xs font-bold uppercase">Role</span>
+            <span className="text-xs font-bold uppercase">{lo.admin.role}</span>
             <select
               value={form.role}
               onChange={(e) =>
@@ -127,33 +128,33 @@ function UserModal({
               }
               className="mt-1 w-full border border-border bg-background px-3 py-2"
             >
-              <option value="staff">Staff</option>
-              <option value="admin">Admin</option>
+              <option value="staff">{lo.common.staff}</option>
+              <option value="admin">{lo.common.admin}</option>
             </select>
           </label>
           {user && (
             <label className="block">
-              <span className="text-xs font-bold uppercase">Status</span>
+              <span className="text-xs font-bold uppercase">{lo.common.status}</span>
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value })}
                 className="mt-1 w-full border border-border bg-background px-3 py-2"
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="active">{lo.common.active}</option>
+                <option value="inactive">{lo.common.inactive}</option>
               </select>
             </label>
           )}
           <div className="flex justify-end gap-2">
             <button type="button" onClick={onClose} disabled={submitting} className="border border-border px-4 py-2">
-              Cancel
+              {lo.common.cancel}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="bg-primary px-4 py-2 text-sm font-bold uppercase text-primary-foreground disabled:opacity-50"
             >
-              {submitting ? 'Saving…' : 'Save'}
+              {submitting ? lo.common.saving : lo.common.save}
             </button>
           </div>
         </form>
@@ -183,7 +184,7 @@ export default function UserAdminPage() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load users';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadUsers;
           setError(message);
           toast.error(message);
         }
@@ -210,15 +211,15 @@ export default function UserAdminPage() {
         dispatch(
           setItems(allUsers.map((u) => (u.User_id === updated.User_id ? updated : u))),
         );
-        toast.success('User updated');
+        toast.success(lo.admin.userUpdated);
       } else {
         const created = await userService.create(input);
         dispatch(addItem(created));
-        toast.success('User created');
+        toast.success(lo.admin.userCreated);
       }
       closeModal();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to save user';
+      const message = err instanceof Error ? err.message : lo.toast.failedSaveUser;
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -226,15 +227,15 @@ export default function UserAdminPage() {
   };
 
   const handleDelete = async (user: User) => {
-    if (!confirm(`Delete "${user.Full_Name}"?`)) return;
+    if (!confirm(lo.admin.deleteConfirm(user.Full_Name))) return;
 
     setDeletingId(user.User_id);
     try {
       await userService.delete(user.User_id);
       dispatch(setItems(allUsers.filter((u) => u.User_id !== user.User_id)));
-      toast.success('User deleted');
+      toast.success(lo.admin.userDeleted);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete user';
+      const message = err instanceof Error ? err.message : lo.toast.failedDeleteUser;
       toast.error(message);
     } finally {
       setDeletingId(null);
@@ -245,9 +246,9 @@ export default function UserAdminPage() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl">USERS</h1>
+          <h1 className="font-display text-3xl">{lo.admin.users}</h1>
           <p className="text-muted-foreground">
-            {loading ? 'Loading…' : `${users.length} admin & staff`}
+            {loading ? lo.common.loading : lo.admin.adminStaff(users.length)}
           </p>
         </div>
         <button
@@ -258,7 +259,7 @@ export default function UserAdminPage() {
           }}
           className="flex items-center gap-2 bg-accent-brand px-4 py-2 text-sm font-bold uppercase text-accent-foreground"
         >
-          <Plus className="h-4 w-4" /> Add User
+          <Plus className="h-4 w-4" /> {lo.admin.addUser}
         </button>
       </div>
 
@@ -270,20 +271,20 @@ export default function UserAdminPage() {
 
       <div className="overflow-x-auto border border-border bg-card">
         {loading ? (
-          <div className="p-12 text-center text-muted-foreground">Loading users…</div>
+          <div className="p-12 text-center text-muted-foreground">{lo.admin.loadingUsers}</div>
         ) : users.length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground">No users found.</div>
+          <div className="p-12 text-center text-muted-foreground">{lo.admin.noUsers}</div>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-secondary text-xs uppercase">
               <tr>
-                <th className="p-3 text-left">ID</th>
-                <th className="p-3 text-left">Full Name</th>
-                <th className="p-3 text-left">Email</th>
-                <th className="p-3 text-left">Tel</th>
-                <th className="p-3 text-left">Role</th>
-                <th className="p-3 text-left">Status</th>
-                <th className="p-3 text-right">Actions</th>
+                <th className="p-3 text-left">{lo.admin.id}</th>
+                <th className="p-3 text-left">{lo.auth.fullName}</th>
+                <th className="p-3 text-left">{lo.common.email}</th>
+                <th className="p-3 text-left">{lo.common.tel}</th>
+                <th className="p-3 text-left">{lo.admin.role}</th>
+                <th className="p-3 text-left">{lo.common.status}</th>
+                <th className="p-3 text-right">{lo.common.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -295,7 +296,7 @@ export default function UserAdminPage() {
                     <td className="p-3 font-mono text-xs">{u.User_id}</td>
                     <td className="p-3 font-semibold">{u.Full_Name}</td>
                     <td className="p-3">{u.Email}</td>
-                    <td className="p-3">{u.tel ?? '—'}</td>
+                    <td className="p-3">{u.tel ?? lo.common.na}</td>
                     <td className="p-3">
                       <span
                         className={`px-2 py-0.5 text-xs ${
@@ -304,10 +305,10 @@ export default function UserAdminPage() {
                             : 'bg-secondary'
                         }`}
                       >
-                        {u.role}
+                        {statusLabel(u.role)}
                       </span>
                     </td>
-                    <td className="p-3">{u.status}</td>
+                    <td className="p-3">{statusLabel(u.status)}</td>
                     <td className="p-3 text-right">
                       <div className="inline-flex gap-1">
                         <button

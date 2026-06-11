@@ -13,6 +13,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageUrl } from '@/utils/getProductImageUrl';
 import { productService } from '@/services/product.api';
 import type { Product } from '@/types/product.type';
+import { lo } from '@/lib/lao';
 
 function parsePrice(price?: string) {
   return Number(price ?? 0);
@@ -65,7 +66,7 @@ export default function CartPage() {
       .catch((err: unknown) => {
         if (!cancelled) {
           setFetchFailed(true);
-          const message = err instanceof Error ? err.message : 'Failed to load products';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadProducts;
           toast.error(message);
         }
       });
@@ -104,7 +105,7 @@ export default function CartPage() {
   if (!mounted || loadingProducts) {
     return (
       <CustomerLayout>
-        <div className="py-20 text-center text-muted-foreground">Loading cart…</div>
+        <div className="py-20 text-center text-muted-foreground">{lo.cart.loading}</div>
       </CustomerLayout>
     );
   }
@@ -114,13 +115,13 @@ export default function CartPage() {
       <CustomerLayout>
         <div className="mx-auto max-w-3xl px-4 py-20 text-center">
           <ShoppingBag className="mx-auto h-16 w-16 text-muted-foreground" />
-          <h1 className="mt-6 font-display text-4xl">YOUR CART IS EMPTY</h1>
-          <p className="mt-2 text-muted-foreground">Add some gear and come back.</p>
+          <h1 className="mt-6 font-display text-4xl">{lo.cart.emptyTitle}</h1>
+          <p className="mt-2 text-muted-foreground">{lo.cart.emptyBody}</p>
           <Link
             href="/shop"
             className="mt-6 inline-block bg-primary px-8 py-3 font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand"
           >
-            Shop Now
+            {lo.cart.shopNow}
           </Link>
         </div>
       </CustomerLayout>
@@ -130,7 +131,7 @@ export default function CartPage() {
   if (fetchFailed) {
     return (
       <CustomerLayout>
-        <div className="py-20 text-center text-destructive">Failed to load cart products.</div>
+        <div className="py-20 text-center text-destructive">{lo.toast.failedLoadCart}</div>
       </CustomerLayout>
     );
   }
@@ -138,16 +139,16 @@ export default function CartPage() {
   return (
     <CustomerLayout>
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="mb-8 font-display text-4xl md:text-5xl">YOUR CART</h1>
+        <h1 className="mb-8 font-display text-4xl md:text-5xl">{lo.cart.title}</h1>
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="space-y-4">
             {enriched.length === 0 ? (
               <div className="border border-border p-8 text-center text-muted-foreground">
-                No valid products in your cart.
+                {lo.cart.noValid}
               </div>
             ) : (
               enriched.map((item) => {
-                const name = item.product.pro_name ?? 'Product';
+                const name = item.product.pro_name ?? lo.common.product;
                 const price = parsePrice(item.product.pro_price);
                 const maxQty = Math.max(1, item.product.pro_qty);
 
@@ -165,9 +166,9 @@ export default function CartPage() {
                         {name}
                       </Link>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {item.size && `Size: ${item.size}`}
+                        {item.size && `${lo.cart.size} ${item.size}`}
                         {item.size && item.color && ' · '}
-                        {item.color && `Color: ${item.color}`}
+                        {item.color && `${lo.cart.color} ${item.color}`}
                       </p>
                       <p className="mt-1 font-bold text-accent-brand">{formatCurrency(price)}</p>
                     </div>
@@ -232,31 +233,31 @@ export default function CartPage() {
             )}
           </div>
           <aside className="sticky top-24 h-fit border border-border p-6">
-            <h2 className="mb-4 font-display text-2xl">ORDER SUMMARY</h2>
+            <h2 className="mb-4 font-display text-2xl">{lo.cart.orderSummary}</h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span>Subtotal</span>
+                <span>{lo.cart.subtotal}</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>{shipping === 0 ? 'FREE' : formatCurrency(shipping)}</span>
+                <span>{lo.cart.shipping}</span>
+                <span>{shipping === 0 ? lo.common.free : formatCurrency(shipping)}</span>
               </div>
               {shipping > 0 && (
                 <p className="text-xs text-muted-foreground">
-                  Add {formatCurrency(5000 - subtotal)} more for free shipping
+                  {lo.cart.freeShippingHint(formatCurrency(5000 - subtotal))}
                 </p>
               )}
             </div>
             <div className="my-4 flex justify-between border-t border-border pt-4 font-display text-xl">
-              <span>Total</span>
+              <span>{lo.common.total}</span>
               <span className="text-accent-brand">{formatCurrency(total)}</span>
             </div>
             <Link
               href="/checkout"
               className="block bg-primary py-3 text-center font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand"
             >
-              Checkout
+              {lo.cart.checkout}
             </Link>
           </aside>
         </div>

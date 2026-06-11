@@ -11,6 +11,7 @@ import { brandService } from '@/services/brand.api';
 import type { CreateProductInput, UpdateProductInput } from '@/types/createPro';
 import type { Brand, Category, Product } from '@/types/product.type';
 import { getProductImageUrl } from '@/utils/getProductImageUrl';
+import { lo } from '@/lib/lao';
 
 interface ProductFormProps {
   product: Product | null;
@@ -90,7 +91,7 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : 'Failed to load options';
+        const message = err instanceof Error ? err.message : lo.toast.failedLoadOptions;
         toast.error(message);
       })
       .finally(() => {
@@ -128,7 +129,7 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
     e.preventDefault();
 
     if (!form.cate_id || !form.brand_id) {
-      toast.error('Please select a category and brand');
+      toast.error(lo.product.selectBrandCategory);
       return;
     }
 
@@ -140,23 +141,23 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
       if (product) {
         const updated = await productService.update(toUpdateInput(form, imageFile));
         onSave?.({ ...updated, category, brand });
-        toast.success('Product updated');
+        toast.success(lo.product.updated);
         onClose();
         return;
       }
 
       if (!imageFile) {
-        toast.error('Please select an image file');
+        toast.error(lo.product.selectImage);
         return;
       }
 
       const created = await productService.create(toCreateInput(form, imageFile));
       dispatch(addItem({ ...created, category, brand }));
-      toast.success('Product created');
+      toast.success(lo.product.created);
       onCreated?.();
       onClose();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to save product';
+      const message = err instanceof Error ? err.message : lo.toast.failedSaveProduct;
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -166,37 +167,37 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-card max-w-lg w-full p-6 max-h-[90vh] overflow-auto">
-        <h2 className="font-display text-2xl mb-4">{product ? 'EDIT' : 'ADD'} PRODUCT</h2>
+        <h2 className="font-display text-2xl mb-4">{product ? lo.product.editProduct : lo.product.addProduct}</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <Inp label="Name" value={form.pro_name ?? ''} onChange={(v) => setForm({ ...form, pro_name: v })} required />
+          <Inp label={lo.common.name} value={form.pro_name ?? ''} onChange={(v) => setForm({ ...form, pro_name: v })} required />
           <div className="grid grid-cols-2 gap-3">
             <Sel
-              label="Brand"
+              label={lo.product.brand}
               value={String(form.brand_id ?? '')}
               onChange={(v) => setForm({ ...form, brand_id: Number(v) })}
               options={brands.map((b) => ({ v: String(b.brand_id), l: b.name }))}
               required
               disabled={optionsLoading}
-              placeholder={optionsLoading ? 'Loading brands…' : 'Select brand'}
+              placeholder={optionsLoading ? lo.product.loadingBrands : lo.product.selectBrand}
             />
             <Sel
-              label="Category"
+              label={lo.product.category}
               value={String(form.cate_id ?? '')}
               onChange={(v) => setForm({ ...form, cate_id: Number(v) })}
               options={categories.map((c) => ({ v: String(c.cate_id), l: c.cate_name }))}
               required
               disabled={optionsLoading}
-              placeholder={optionsLoading ? 'Loading categories…' : 'Select category'}
+              placeholder={optionsLoading ? lo.product.loadingCategories : lo.product.selectCategory}
             />
             <Inp
-              label="Price"
+              label={lo.common.price}
               type="number"
               value={form.pro_price ?? '0'}
               onChange={(v) => setForm({ ...form, pro_price: v })}
               required
             />
             <Inp
-              label="Quantity"
+              label={lo.common.quantity}
               type="number"
               value={String(form.pro_qty)}
               onChange={(v) => setForm({ ...form, pro_qty: +v })}
@@ -204,7 +205,7 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
             />
           </div>
           <label className="block">
-            <span className="text-xs uppercase font-bold tracking-widest">Image</span>
+            <span className="text-xs uppercase font-bold tracking-widest">{lo.product.image}</span>
             <input
               type="file"
               accept="image/*"
@@ -215,7 +216,7 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
             {imagePreview && (
               <Image
                 src={imagePreview}
-                alt="Preview"
+                alt={lo.product.preview}
                 width={96}
                 height={96}
                 unoptimized={imagePreview.startsWith('blob:')}
@@ -224,7 +225,7 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
             )}
           </label>
           <label className="block">
-            <span className="text-xs uppercase font-bold">Description</span>
+            <span className="text-xs uppercase font-bold">{lo.product.description}</span>
             <textarea
               value={form.pro_detail ?? ''}
               onChange={(e) => setForm({ ...form, pro_detail: e.target.value })}
@@ -234,14 +235,14 @@ export default function ProductForm({ product, onSave, onCreated, onClose }: Pro
           </label>
           <div className="flex gap-2 justify-end pt-2">
             <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 border border-border">
-              Cancel
+              {lo.common.cancel}
             </button>
             <button
               type="submit"
               disabled={submitting || optionsLoading}
               className="bg-primary text-primary-foreground px-4 py-2 font-bold uppercase text-sm disabled:opacity-50"
             >
-              {submitting ? 'Saving…' : 'Save'}
+              {submitting ? lo.common.saving : lo.common.save}
             </button>
           </div>
         </form>
@@ -282,7 +283,7 @@ const Sel = ({
   options,
   required = false,
   disabled = false,
-  placeholder = 'Select…',
+  placeholder = lo.common.select,
 }: {
   label: string;
   value: string;

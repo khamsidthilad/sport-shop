@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Facebook, Instagram, Twitter, Youtube } from 'lucide-react';
+import { lo } from '@/lib/lao';
 
 export function Footer() {
   return (
@@ -9,11 +10,9 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         <div className="col-span-2">
           <div className="font-display text-2xl tracking-wider">
-            SPORT<span className="text-accent-brand">SHOP</span>
+            {lo.brand.sport}<span className="text-accent-brand">{lo.brand.shop}</span>
           </div>
-          <p className="mt-3 text-sm opacity-70 max-w-sm">
-            Performance gear for athletes who refuse to quit. Authentic products, fast shipping.
-          </p>
+          <p className="mt-3 text-sm opacity-70 max-w-sm">{lo.footer.tagline}</p>
           <div className="flex gap-3 mt-4">
             <a href="#" aria-label="Facebook" className="p-2 border border-primary-foreground/30 hover:bg-accent-brand hover:border-accent-brand">
               <Facebook className="w-4 h-4" />
@@ -30,24 +29,24 @@ export function Footer() {
           </div>
         </div>
         <div>
-          <h4 className="font-display text-lg mb-3">Shop</h4>
+          <h4 className="font-display text-lg mb-3">{lo.footer.shop}</h4>
           <ul className="space-y-2 text-sm opacity-80">
-            <li><Link href="/shop">All Products</Link></li>
-            <li><Link href="/shop">Categories</Link></li>
-            <li><Link href="/shop">Brands</Link></li>
+            <li><Link href="/shop">{lo.footer.allProducts}</Link></li>
+            <li><Link href="/category">{lo.nav.categories}</Link></li>
+            <li><Link href="/brand">{lo.nav.brands}</Link></li>
           </ul>
         </div>
         <div>
-          <h4 className="font-display text-lg mb-3">Company</h4>
+          <h4 className="font-display text-lg mb-3">{lo.footer.company}</h4>
           <ul className="space-y-2 text-sm opacity-80">
-            <li><Link href="/shop">About Us</Link></li>
-            <li><Link href="/contact">Contact</Link></li>
-            <li><a href="#">Privacy</a></li>
+            <li><Link href="/shop">{lo.footer.aboutUs}</Link></li>
+            <li><Link href="/contact">{lo.nav.contact}</Link></li>
+            <li><a href="#">{lo.footer.privacy}</a></li>
           </ul>
         </div>
       </div>
       <div className="border-t border-primary-foreground/10 py-4 text-center text-xs opacity-60">
-        © 2026 SportShop. All rights reserved.
+        {lo.footer.copyright}
       </div>
     </footer>
   );

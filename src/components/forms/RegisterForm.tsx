@@ -11,6 +11,7 @@ import { useAppSelector } from '@/hooks/useAppSelector';
 import { registerCustomer, logoutCustomer } from '@/redux/slices/authSlice';
 import type { RegisterInput } from '@/types/auth.type';
 import { CustomerLayout } from '@/components/layouts/CustomerLayout';
+import { lo } from '@/lib/lao';
 
 const registerSchema = z.object({
   name: z.string().trim().min(2).max(50),
@@ -63,35 +64,35 @@ export default function RegisterForm() {
     try {
       await dispatch(registerCustomer(payload)).unwrap();
       dispatch(logoutCustomer());
-      toast.success('Account created! Please log in.');
+      toast.success(lo.auth.accountCreated);
       router.push('/login');
     } catch (message) {
-      toast.error(typeof message === 'string' ? message : 'Registration failed');
+      toast.error(typeof message === 'string' ? message : lo.auth.registerFailed);
     }
   };
   return (
     <CustomerLayout>
       <div className="mx-auto max-w-lg px-4 py-16">
-        <h1 className="text-center font-display text-4xl">CREATE ACCOUNT</h1>
+        <h1 className="text-center font-display text-4xl">{lo.auth.createAccount}</h1>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 grid grid-cols-2 gap-4">
-          <FieldR label="Full Name" error={errors.name?.message} {...register('name')} />
-          <FieldR label="Surname" error={errors.sname?.message} {...register('sname')} />
+          <FieldR label={lo.auth.fullName} error={errors.name?.message} {...register('name')} />
+          <FieldR label={lo.auth.surname} error={errors.sname?.message} {...register('sname')} />
           <FieldR
-            label="Date of Birth"
+            label={lo.auth.dateOfBirth}
             type="date"
             error={errors.dateOfBirth?.message}
             {...register('dateOfBirth')}
           />
-          <FieldR label="Telephone" error={errors.tel?.message} {...register('tel')} />
-          <FieldR label="Username" error={errors.username?.message} {...register('username')} />
+          <FieldR label={lo.auth.telephone} error={errors.tel?.message} {...register('tel')} />
+          <FieldR label={lo.common.username} error={errors.username?.message} {...register('username')} />
           <FieldR
-            label="Password"
+            label={lo.common.password}
             type="password"
             error={errors.password?.message}
             {...register('password')}
           />
           <div className="col-span-2">
-            <FieldR label="Address" error={errors.address?.message} {...register('address')} />
+            <FieldR label={lo.common.address} error={errors.address?.message} {...register('address')} />
           </div>
           {error && <p className="col-span-2 text-sm text-destructive">{error}</p>}
           <button
@@ -99,13 +100,13 @@ export default function RegisterForm() {
             disabled={loading}
             className="col-span-2 bg-primary py-3 font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand disabled:opacity-60"
           >
-            {loading ? 'Creating account…' : 'Register'}
+            {loading ? lo.auth.creatingAccount : lo.nav.register}
           </button>
         </form>
         <p className="mt-6 text-center text-sm">
-          Have an account?{' '}
+          {lo.auth.haveAccount}{' '}
           <Link href="/login" className="font-semibold text-accent-brand">
-            Login
+            {lo.auth.login}
           </Link>
         </p>
       </div>

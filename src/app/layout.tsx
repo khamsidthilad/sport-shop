@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { Bebas_Neue, Inter } from 'next/font/google';
+import { Bebas_Neue, Inter, Noto_Sans_Lao } from 'next/font/google';
+import { lo } from '@/lib/lao';
 import { Toaster } from 'sonner';
 import ReduxProvider from '@/providers/ReduxProvider';
 import QueryProvider from '@/providers/QueryProvider';
@@ -19,10 +20,16 @@ const bebasNeue = Bebas_Neue({
   display: 'swap',
 });
 
+const notoSansLao = Noto_Sans_Lao({
+  subsets: ['lao', 'latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-lao',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'SportShop — Premium Sports Gear & Equipment',
-  description:
-    'Authentic sports gear from Nike, Adidas, Puma & more. Football, basketball, running shoes, fitness equipment and sportswear.',
+  title: lo.meta.title,
+  description: lo.meta.description,
 };
 
 export default function RootLayout({
@@ -31,8 +38,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${bebasNeue.variable}`}>
-      <body className={`${inter.className} min-h-screen antialiased`}>
+    <html lang="lo" className={`${inter.variable} ${bebasNeue.variable} ${notoSansLao.variable}`}>
+      <body className={`${notoSansLao.className} min-h-screen antialiased`}>
         <QueryProvider>
           <ReduxProvider>{children}</ReduxProvider>
         </QueryProvider>

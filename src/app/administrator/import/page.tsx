@@ -11,6 +11,7 @@ import { getImportPrice, getImportTotal } from '@/types/import.type';
 import type { Product } from '@/types/product.type';
 import type { Supplier } from '@/types/supplier.type';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { lo } from '@/lib/lao';
 
 function ImportModal({
   products,
@@ -53,10 +54,10 @@ function ImportModal({
           onSave(form);
         }}
       >
-        <h2 className="mb-2 font-display text-2xl">IMPORT STOCK</h2>
+        <h2 className="mb-2 font-display text-2xl">{lo.admin.importStock}</h2>
 
         <label className="block">
-          <span className="text-xs font-bold uppercase">Product</span>
+          <span className="text-xs font-bold uppercase">{lo.common.product}</span>
           <select
             value={form.pro_id || ''}
             onChange={(e) => handleProductChange(Number(e.target.value))}
@@ -64,18 +65,18 @@ function ImportModal({
             className="mt-1 w-full border border-border bg-background px-3 py-2"
           >
             <option value="" disabled>
-              Select product
+              {lo.admin.selectProduct}
             </option>
             {products.map((p) => (
               <option key={p.pro_id} value={p.pro_id}>
-                {p.pro_name ?? `Product #${p.pro_id}`}
+                {p.pro_name ?? `${lo.common.product} #${p.pro_id}`}
               </option>
             ))}
           </select>
         </label>
 
         <label className="block">
-          <span className="text-xs font-bold uppercase">Supplier</span>
+          <span className="text-xs font-bold uppercase">{lo.admin.suppliers}</span>
           <select
             value={form.sup_id || ''}
             onChange={(e) => setForm({ ...form, sup_id: Number(e.target.value) })}
@@ -83,18 +84,18 @@ function ImportModal({
             className="mt-1 w-full border border-border bg-background px-3 py-2"
           >
             <option value="" disabled>
-              Select supplier
+              {lo.admin.selectSupplier}
             </option>
             {suppliers.map((s) => (
               <option key={s.sup_id} value={s.sup_id}>
-                {s.name ?? `Supplier #${s.sup_id}`}
+                {s.name ?? `${lo.admin.suppliers} #${s.sup_id}`}
               </option>
             ))}
           </select>
         </label>
 
         <label className="block">
-          <span className="text-xs font-bold uppercase">Quantity</span>
+          <span className="text-xs font-bold uppercase">{lo.common.quantity}</span>
           <input
             type="number"
             min={1}
@@ -106,7 +107,7 @@ function ImportModal({
         </label>
 
         <label className="block">
-          <span className="text-xs font-bold uppercase">Price</span>
+          <span className="text-xs font-bold uppercase">{lo.common.price}</span>
           <input
             type="number"
             min={0}
@@ -120,14 +121,14 @@ function ImportModal({
 
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} disabled={submitting} className="border border-border px-4 py-2">
-            Cancel
+            {lo.common.cancel}
           </button>
           <button
             type="submit"
             disabled={submitting || !form.pro_id || !form.sup_id}
             className="bg-primary px-4 py-2 text-sm font-bold uppercase text-primary-foreground disabled:opacity-50"
           >
-            {submitting ? 'Importing…' : 'Import'}
+            {submitting ? lo.common.importing : lo.common.import}
           </button>
         </div>
       </form>
@@ -157,7 +158,7 @@ export default function ImportAdminPage() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load imports';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadImports;
           setError(message);
           toast.error(message);
         }
@@ -188,10 +189,10 @@ export default function ImportAdminPage() {
             : product,
         ),
       );
-      toast.success('Stock imported');
+      toast.success(lo.admin.stockImported);
       setOpen(false);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to import stock';
+      const message = err instanceof Error ? err.message : lo.toast.failedImportStock;
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -199,7 +200,7 @@ export default function ImportAdminPage() {
   };
 
   const handleDelete = async (record: ImportRecord) => {
-    if (!confirm(`Delete import #${record.Purchase_id}?`)) return;
+    if (!confirm(lo.admin.deleteImportConfirm(record.Purchase_id))) return;
 
     setDeletingId(record.Purchase_id);
     try {
@@ -217,9 +218,9 @@ export default function ImportAdminPage() {
           ),
         );
       }
-      toast.success('Import deleted');
+      toast.success(lo.admin.importDeleted);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete import';
+      const message = err instanceof Error ? err.message : lo.toast.failedDeleteImport;
       toast.error(message);
     } finally {
       setDeletingId(null);
@@ -232,9 +233,9 @@ export default function ImportAdminPage() {
     <div className="space-y-6 p-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl">IMPORTS</h1>
+          <h1 className="font-display text-3xl">{lo.admin.imports}</h1>
           <p className="text-muted-foreground">
-            {loading ? 'Loading…' : `${records.length} records · Total value ${formatCurrency(totalValue)}`}
+            {loading ? lo.common.loading : lo.admin.recordsTotal(records.length, formatCurrency(totalValue))}
           </p>
         </div>
         <button
@@ -243,7 +244,7 @@ export default function ImportAdminPage() {
           disabled={loading || !canCreate}
           className="flex items-center gap-2 bg-accent-brand px-4 py-2 text-sm font-bold uppercase text-accent-foreground disabled:opacity-50"
         >
-          <Plus className="h-4 w-4" /> Import Stock
+          <Plus className="h-4 w-4" /> {lo.admin.importStock}
         </button>
       </div>
 
@@ -255,27 +256,27 @@ export default function ImportAdminPage() {
 
       {!loading && !canCreate && (
         <p className="border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-          Add at least one product and one supplier before importing stock.
+          {lo.admin.importHint}
         </p>
       )}
 
       <div className="overflow-x-auto border border-border bg-card">
         {loading ? (
-          <div className="p-12 text-center text-muted-foreground">Loading imports…</div>
+          <div className="p-12 text-center text-muted-foreground">{lo.admin.loadingImports}</div>
         ) : records.length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground">No import records found.</div>
+          <div className="p-12 text-center text-muted-foreground">{lo.admin.noImports}</div>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-secondary text-xs uppercase">
               <tr>
-                <th className="p-3 text-left">ID</th>
-                <th className="p-3 text-left">Product</th>
-                <th className="p-3 text-left">Supplier</th>
-                <th className="p-3 text-right">Qty</th>
-                <th className="p-3 text-right">Price</th>
-                <th className="p-3 text-right">Total</th>
-                <th className="p-3 text-left">Date</th>
-                <th className="p-3 text-center">Actions</th>
+                <th className="p-3 text-left">{lo.admin.id}</th>
+                <th className="p-3 text-left">{lo.common.product}</th>
+                <th className="p-3 text-left">{lo.admin.suppliers}</th>
+                <th className="p-3 text-right">{lo.common.qty}</th>
+                <th className="p-3 text-right">{lo.common.price}</th>
+                <th className="p-3 text-right">{lo.common.total}</th>
+                <th className="p-3 text-left">{lo.common.date}</th>
+                <th className="p-3 text-center">{lo.common.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -286,10 +287,10 @@ export default function ImportAdminPage() {
                   <tr key={record.Purchase_id} className="border-t border-border hover:bg-secondary/50">
                     <td className="p-3 font-mono text-xs">{record.Purchase_id}</td>
                     <td className="p-3 font-semibold">
-                      {record.product?.pro_name ?? (record.pro_id ? `#${record.pro_id}` : '—')}
+                      {record.product?.pro_name ?? (record.pro_id ? `#${record.pro_id}` : lo.common.na)}
                     </td>
                     <td className="p-3">
-                      {record.supplier?.name ?? (record.sup_id ? `#${record.sup_id}` : '—')}
+                      {record.supplier?.name ?? (record.sup_id ? `#${record.sup_id}` : lo.common.na)}
                     </td>
                     <td className="p-3 text-right">{record.quantity ?? 0}</td>
                     <td className="p-3 text-right">{formatCurrency(getImportPrice(record))}</td>

@@ -20,6 +20,7 @@ import {
   isOrderAwaitingPayment,
   type Order,
 } from '@/types/order.type';
+import { lo, statusLabel } from '@/lib/lao';
 
 const Detail = ({ label, value }: { label: string; value: string }) => (
   <div>
@@ -57,7 +58,7 @@ export default function ProfilePage() {
         })
         .catch((err: unknown) => {
           if (!cancelled) {
-            const message = err instanceof Error ? err.message : 'Failed to load orders';
+            const message = err instanceof Error ? err.message : lo.toast.failedLoadOrders;
             toast.error(message);
           }
         })
@@ -88,7 +89,7 @@ export default function ProfilePage() {
   const { customer, user } = session;
 
   const handleCancelOrder = async (order: Order) => {
-    if (!confirm(`ยกเลิก order #${order.order_id}?`)) return;
+    if (!confirm(lo.checkout.cancelConfirm(order.order_id))) return;
 
     setCancellingId(order.order_id);
     try {
@@ -96,9 +97,9 @@ export default function ProfilePage() {
       setOrders((prev) =>
         prev.map((item) => (item.order_id === updated.order_id ? updated : item)),
       );
-      toast.success('ยกเลิก order สำเร็จ');
+      toast.success(lo.checkout.cancelSuccess);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to cancel order';
+      const message = err instanceof Error ? err.message : lo.toast.failedCancelOrder;
       toast.error(message);
     } finally {
       setCancellingId(null);
@@ -109,12 +110,12 @@ export default function ProfilePage() {
     e.preventDefault();
 
     if (password.length < 4) {
-      toast.error('Password must be at least 4 characters');
+      toast.error(lo.profile.passwordMin);
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error(lo.profile.passwordMismatch);
       return;
     }
 
@@ -123,9 +124,9 @@ export default function ProfilePage() {
       await authService.updateProfile({ password });
       setPassword('');
       setConfirmPassword('');
-      toast.success('Password updated');
+      toast.success(lo.profile.passwordUpdated);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update password';
+      const message = err instanceof Error ? err.message : lo.toast.failedUpdatePassword;
       toast.error(message);
     } finally {
       setUpdatingPassword(false);
@@ -135,7 +136,7 @@ export default function ProfilePage() {
   return (
     <CustomerLayout>
       <div className="mx-auto max-w-5xl px-4 py-12">
-        <h1 className="mb-8 font-display text-4xl md:text-5xl">MY PROFILE</h1>
+        <h1 className="mb-8 font-display text-4xl md:text-5xl">{lo.profile.title}</h1>
         <div className="grid gap-8 md:grid-cols-[260px_1fr]">
           <aside className="h-fit border border-border p-4">
             <div className="flex items-center gap-3 border-b border-border pb-4">
@@ -149,16 +150,16 @@ export default function ProfilePage() {
             </div>
             <nav className="mt-4 space-y-1 text-sm">
               <a href="#info" className="flex items-center gap-2 px-3 py-2 hover:bg-secondary">
-                <User className="h-4 w-4" /> Information
+                <User className="h-4 w-4" /> {lo.profile.information}
               </a>
               <a href="#address" className="flex items-center gap-2 px-3 py-2 hover:bg-secondary">
-                <MapPin className="h-4 w-4" /> Address
+                <MapPin className="h-4 w-4" /> {lo.profile.address}
               </a>
               <a href="#orders" className="flex items-center gap-2 px-3 py-2 hover:bg-secondary">
-                <Package className="h-4 w-4" /> Orders
+                <Package className="h-4 w-4" /> {lo.profile.orders}
               </a>
               <a href="#password" className="flex items-center gap-2 px-3 py-2 hover:bg-secondary">
-                <KeyRound className="h-4 w-4" /> Password
+                <KeyRound className="h-4 w-4" /> {lo.profile.password}
               </a>
               <button
                 type="button"
@@ -168,41 +169,40 @@ export default function ProfilePage() {
                 }}
                 className="flex w-full items-center gap-2 px-3 py-2 hover:bg-destructive hover:text-destructive-foreground"
               >
-                <LogOut className="h-4 w-4" /> Logout
+                <LogOut className="h-4 w-4" /> {lo.profile.logout}
               </button>
             </nav>
           </aside>
 
           <div className="space-y-8">
             <section id="info" className="border border-border p-6">
-              <h2 className="mb-4 font-display text-xl">PROFILE INFORMATION</h2>
+              <h2 className="mb-4 font-display text-xl">{lo.profile.profileInfo}</h2>
               <dl className="grid grid-cols-2 gap-3 text-sm">
-                <Detail label="Full Name" value={customer.cus_name} />
-                <Detail label="Username" value={user.username} />
-                <Detail label="Email" value={customer.Email || '—'} />
-                <Detail label="Telephone" value={customer.Tel || '—'} />
+                <Detail label={lo.profile.fullName} value={customer.cus_name} />
+                <Detail label={lo.common.username} value={user.username} />
+                <Detail label={lo.common.email} value={customer.Email || lo.common.na} />
+                <Detail label={lo.common.tel} value={customer.Tel || lo.common.na} />
               </dl>
             </section>
 
             <section id="address" className="border border-border p-6">
-              <h2 className="mb-4 font-display text-xl">ADDRESS</h2>
-              <p className="text-sm">{customer.address || '—'}</p>
-              <p className="mt-2 text-xs text-muted-foreground">Status: {customer.cus_status}</p>
+              <h2 className="mb-4 font-display text-xl">{lo.profile.address}</h2>
+              <p className="text-sm">{customer.address || lo.common.na}</p>
+              <p className="mt-2 text-xs text-muted-foreground">{lo.profile.status} {statusLabel(customer.cus_status)}</p>
             </section>
 
             <section id="orders" className="border border-border p-6">
               <h2 className="mb-4 font-display text-xl">
-                ORDER HISTORY ({ordersLoading ? '…' : orders.length})
+                {lo.profile.orderHistory} ({ordersLoading ? '…' : orders.length})
               </h2>
               {ordersLoading ? (
-                <p className="text-sm text-muted-foreground">Loading orders…</p>
+                <p className="text-sm text-muted-foreground">{lo.profile.loadingOrders}</p>
               ) : orders.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No orders yet.{' '}
+                  {lo.profile.noOrders}{' '}
                   <Link href="/shop" className="text-accent-brand">
-                    Start shopping
+                    {lo.profile.startShopping}
                   </Link>
-                  .
                 </p>
               ) : (
                 <div className="space-y-3">
@@ -215,20 +215,20 @@ export default function ProfilePage() {
                         <div className="font-semibold">#{o.order_id}</div>
                         <div className="text-xs text-muted-foreground">
                           {new Date(getOrderDate(o)).toLocaleDateString()} ·{' '}
-                          {o.billDetails?.length ?? 0} items
+                          {o.billDetails?.length ?? 0} {lo.profile.items}
                         </div>
                       </div>
                       <div className="flex flex-col items-start gap-2 sm:items-end">
                         <div className="font-bold">{formatCurrency(o.price ?? 0)}</div>
                         <div className="flex flex-wrap gap-1">
                           <OrderStatusBadge
-                            label="Payment"
+                            label={lo.order.payment}
                             status={o.payment_status}
                             kind="payment"
                             order={o}
                           />
                           <OrderStatusBadge
-                            label="Shipping"
+                            label={lo.order.shipping}
                             status={o.shipping_status}
                             kind="shipping"
                           />
@@ -239,7 +239,7 @@ export default function ProfilePage() {
                               href={`/checkout?orderId=${o.order_id}`}
                               className="bg-accent-brand px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-accent-foreground hover:opacity-90"
                             >
-                              Pay now
+                              {lo.profile.payNow}
                             </Link>
                           )}
                           {canCancelOrder(o) && (
@@ -249,7 +249,7 @@ export default function ProfilePage() {
                               disabled={cancellingId === o.order_id}
                               className="border border-destructive px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-destructive hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
                             >
-                              {cancellingId === o.order_id ? 'Cancelling…' : 'Cancel order'}
+                              {cancellingId === o.order_id ? lo.checkout.cancelling : lo.checkout.cancelOrder}
                             </button>
                           )}
                         </div>
@@ -261,11 +261,11 @@ export default function ProfilePage() {
             </section>
 
             <section id="password" className="border border-border p-6">
-              <h2 className="mb-4 font-display text-xl">CHANGE PASSWORD</h2>
+              <h2 className="mb-4 font-display text-xl">{lo.profile.changePassword}</h2>
               <form onSubmit={handlePasswordSubmit} className="max-w-sm space-y-3">
                 <input
                   type="password"
-                  placeholder="New password"
+                  placeholder={lo.profile.newPassword}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full border border-border bg-background px-3 py-2"
@@ -274,7 +274,7 @@ export default function ProfilePage() {
                 />
                 <input
                   type="password"
-                  placeholder="Confirm new password"
+                  placeholder={lo.profile.confirmPassword}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full border border-border bg-background px-3 py-2"
@@ -286,7 +286,7 @@ export default function ProfilePage() {
                   disabled={updatingPassword}
                   className="bg-primary px-6 py-2 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand disabled:opacity-50"
                 >
-                  {updatingPassword ? 'Updating…' : 'Update'}
+                  {updatingPassword ? lo.profile.updating : lo.profile.update}
                 </button>
               </form>
             </section>

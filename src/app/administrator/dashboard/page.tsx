@@ -24,7 +24,6 @@ import { orderService } from '@/services/order.api';
 import { productService } from '@/services/product.api';
 import type { Category } from '@/types/category.type';
 import {
-  formatStatusLabel,
   getOrderCustomerName,
   getOrderDate,
   type Order,
@@ -37,6 +36,7 @@ import {
   getRecentOrders,
   getTotalRevenue,
 } from '@/utils/dashboardStats';
+import { lo, statusLabel } from '@/lib/lao';
 
 const COLORS = [
   'oklch(0.62 0.24 25)',
@@ -75,7 +75,7 @@ export default function Dashboard() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load dashboard data';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadDashboard;
           setError(message);
           toast.error(message);
         }
@@ -98,12 +98,12 @@ export default function Dashboard() {
   const recentOrders = useMemo(() => getRecentOrders(orders), [orders]);
 
   const stats = [
-    { label: 'Total Products', value: loading ? '…' : products.length, icon: Package, color: 'bg-blue-500' },
-    { label: 'Total Categories', value: loading ? '…' : categories.length, icon: FolderTree, color: 'bg-green-500' },
-    { label: 'Total Customers', value: loading ? '…' : customerCount, icon: Users, color: 'bg-purple-500' },
-    { label: 'Total Orders', value: loading ? '…' : orders.length, icon: ShoppingBag, color: 'bg-orange-500' },
+    { label: lo.admin.totalProducts, value: loading ? '…' : products.length, icon: Package, color: 'bg-blue-500' },
+    { label: lo.admin.totalCategories, value: loading ? '…' : categories.length, icon: FolderTree, color: 'bg-green-500' },
+    { label: lo.admin.totalCustomers, value: loading ? '…' : customerCount, icon: Users, color: 'bg-purple-500' },
+    { label: lo.admin.totalOrders, value: loading ? '…' : orders.length, icon: ShoppingBag, color: 'bg-orange-500' },
     {
-      label: 'Total Revenue',
+      label: lo.admin.totalRevenue,
       value: loading ? '…' : formatCurrency(revenue),
       icon: TrendingUp,
       color: 'bg-accent-brand',
@@ -113,9 +113,9 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 p-8">
       <div>
-        <h1 className="font-display text-4xl">DASHBOARD</h1>
+        <h1 className="font-display text-4xl">{lo.admin.dashboard}</h1>
         <p className="text-muted-foreground">
-          {loading ? 'Loading dashboard data…' : "Welcome back, here's what's happening."}
+          {loading ? lo.admin.loadingDashboard : lo.admin.welcome}
         </p>
       </div>
 
@@ -139,10 +139,10 @@ export default function Dashboard() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="border border-border bg-card p-6">
-          <h3 className="mb-4 font-display text-xl">MONTHLY SALES (REVENUE)</h3>
+          <h3 className="mb-4 font-display text-xl">{lo.admin.monthlySales}</h3>
           {loading ? (
             <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
-              Loading chart…
+              {lo.admin.loadingChart}
             </div>
           ) : monthly.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
@@ -162,16 +162,16 @@ export default function Dashboard() {
             </ResponsiveContainer>
           ) : (
             <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
-              No monthly sales data available.
+              {lo.admin.noMonthlySales}
             </div>
           )}
         </div>
 
         <div className="border border-border bg-card p-6">
-          <h3 className="mb-4 font-display text-xl">ORDERS PER MONTH</h3>
+          <h3 className="mb-4 font-display text-xl">{lo.admin.ordersPerMonth}</h3>
           {loading ? (
             <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
-              Loading chart…
+              {lo.admin.loadingChart}
             </div>
           ) : monthly.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
@@ -185,16 +185,16 @@ export default function Dashboard() {
             </ResponsiveContainer>
           ) : (
             <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
-              No monthly order data available.
+              {lo.admin.noMonthlyOrders}
             </div>
           )}
         </div>
 
         <div className="border border-border bg-card p-6">
-          <h3 className="mb-4 font-display text-xl">SALES BY CATEGORY</h3>
+          <h3 className="mb-4 font-display text-xl">{lo.admin.salesByCategory}</h3>
           {loading ? (
             <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
-              Loading chart…
+              {lo.admin.loadingChart}
             </div>
           ) : catSales.length > 0 ? (
             <ResponsiveContainer width="100%" height={260}>
@@ -210,16 +210,16 @@ export default function Dashboard() {
             </ResponsiveContainer>
           ) : (
             <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
-              No category sales available.
+              {lo.admin.noCategorySales}
             </div>
           )}
         </div>
 
         <div className="border border-border bg-card p-6">
-          <h3 className="mb-4 font-display text-xl">RECENT ORDERS</h3>
+          <h3 className="mb-4 font-display text-xl">{lo.admin.recentOrders}</h3>
           {loading ? (
             <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
-              Loading orders…
+              {lo.admin.loadingOrders}
             </div>
           ) : recentOrders.length > 0 ? (
             <div className="space-y-2">
@@ -237,14 +237,14 @@ export default function Dashboard() {
                   </div>
                   <div className="text-right">
                     <div className="font-bold">{formatCurrency(Number(order.price ?? 0))}</div>
-                    <div className="text-xs">{formatStatusLabel(order.shipping_status)}</div>
+                    <div className="text-xs">{statusLabel(order.shipping_status)}</div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="flex min-h-65 items-center justify-center text-sm text-muted-foreground">
-              No recent orders available.
+              {lo.admin.noRecentOrders}
             </div>
           )}
         </div>
