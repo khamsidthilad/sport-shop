@@ -10,6 +10,7 @@ import type { Category } from '@/types/category.type';
 import { getCategoryHref, getCategoryLabel } from '@/types/category.type';
 import type { Product } from '@/types/product.type';
 import { getBrandImageUrl } from '@/utils/getProductImageUrl';
+import { lo } from '@/lib/lao';
 
 function parsePrice(price?: string) {
   return Number(price ?? 0);
@@ -61,7 +62,7 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
       <section className="relative min-h-[85vh] overflow-hidden bg-primary text-primary-foreground">
         <Image
           src="/assets/hero-athlete.jpg"
-          alt="Athlete sprinting"
+          alt={lo.home.athleteAlt}
           fill
           priority
           className="object-cover opacity-40"
@@ -70,30 +71,29 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
         <div className="absolute inset-0 bg-linear-to-r from-primary via-primary/80 to-primary/20" />
         <div className="relative mx-auto flex min-h-[85vh] max-w-7xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
           <p className="inline-flex w-fit rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.25em] text-accent-brand backdrop-blur-sm">
-            New Season · 2026
+            {lo.home.badge}
           </p>
           <h1 className="font-display mt-6 max-w-4xl text-balance text-6xl leading-[0.9] md:text-8xl lg:text-9xl">
-            JUST DO
+            {lo.home.headline1}
             <br />
-            <span className="text-accent-brand">MORE.</span>
+            <span className="text-accent-brand">{lo.home.headline2}</span>
           </h1>
           <p className="mt-6 max-w-xl text-base leading-relaxed text-primary-foreground/80 md:text-lg">
-            Performance gear engineered for athletes who refuse to settle. Train harder, run faster,
-            play stronger.
+            {lo.home.heroBody}
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href="/shop"
               className="inline-flex items-center gap-2 rounded-sm bg-accent-brand px-8 py-4 text-sm font-bold uppercase tracking-wider text-accent-foreground shadow-bold transition hover:scale-[1.02] hover:opacity-95 active:scale-[0.98]"
             >
-              Shop Now
+              {lo.home.shopNow}
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href="/shop"
               className="inline-flex items-center rounded-sm border-2 border-primary-foreground/80 px-8 py-4 text-sm font-bold uppercase tracking-wider transition hover:bg-primary-foreground hover:text-primary"
             >
-              Explore
+              {lo.home.explore}
             </Link>
           </div>
         </div>
@@ -102,10 +102,10 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
       <section className="border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
           {[
-            { icon: Truck, label: 'Free Shipping', sub: 'Orders over ฿5,000' },
-            { icon: Shield, label: '100% Authentic', sub: 'Guaranteed genuine' },
-            { icon: RotateCcw, label: 'Easy Returns', sub: '30-day returns' },
-            { icon: Headphones, label: '24/7 Support', sub: 'Always here' },
+            { icon: Truck, label: lo.home.freeShipping, sub: lo.home.freeShippingSub },
+            { icon: Shield, label: lo.home.authentic, sub: lo.home.authenticSub },
+            { icon: RotateCcw, label: lo.home.easyReturns, sub: lo.home.easyReturnsSub },
+            { icon: Headphones, label: lo.home.support, sub: lo.home.supportSub },
           ].map((p) => (
             <div key={p.label} className="flex items-center gap-3">
               <p.icon className="w-8 h-8 text-accent-brand" />
@@ -121,18 +121,18 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <p className="text-accent-brand font-bold tracking-widest text-xs">SHOP BY SPORT</p>
-            <h2 className="font-display text-4xl md:text-5xl mt-2">CHOOSE YOUR GAME</h2>
+            <p className="text-accent-brand font-bold tracking-widest text-xs">{lo.home.shopBySport}</p>
+            <h2 className="font-display text-4xl md:text-5xl mt-2">{lo.home.chooseGame}</h2>
           </div>
           <Link
             href="/category"
             className="hidden md:inline-flex items-center gap-2 text-sm font-semibold uppercase hover:text-accent-brand"
           >
-            View all <ArrowRight className="w-4 h-4" />
+            {lo.common.viewAll} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
         {categories.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">No categories available.</div>
+          <div className="py-12 text-center text-muted-foreground">{lo.home.noCategories}</div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {categories.slice(0, 8).map((c) => {
@@ -145,7 +145,7 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
                 <Link
                   key={c.cate_id}
                   href={href}
-                  className="group relative aspect-square bg-gradient-to-br from-secondary to-muted border border-border flex flex-col items-center justify-center hover:border-accent-brand hover:shadow-bold transition-all"
+                  className="group relative aspect-square bg-linear-to-br from-secondary to-muted border border-border flex flex-col items-center justify-center hover:border-accent-brand hover:shadow-bold transition-all"
                 >
                   <span className="font-display text-6xl opacity-30 group-hover:scale-110 transition-transform">
                     {label.charAt(0)}
@@ -163,18 +163,18 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <p className="text-accent-brand font-bold tracking-widest text-xs">FEATURED</p>
-            <h2 className="font-display text-4xl md:text-5xl mt-2">HOT RIGHT NOW</h2>
+            <p className="text-accent-brand font-bold tracking-widest text-xs">{lo.home.featured}</p>
+            <h2 className="font-display text-4xl md:text-5xl mt-2">{lo.home.hotRightNow}</h2>
           </div>
           <Link
             href="/shop"
             className="hidden md:inline-flex items-center gap-2 text-sm font-semibold uppercase hover:text-accent-brand"
           >
-            Shop all <ArrowRight className="w-4 h-4" />
+            {lo.home.shopAll} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
         {featured.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">No products available.</div>
+          <div className="py-12 text-center text-muted-foreground">{lo.home.noProducts}</div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {featured.map((p) => (
@@ -187,24 +187,24 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
       <section className="bg-primary text-primary-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <p className="text-accent-brand font-bold tracking-widest text-xs">LIMITED TIME</p>
+            <p className="text-accent-brand font-bold tracking-widest text-xs">{lo.home.limitedTime}</p>
             <h2 className="font-display text-5xl md:text-7xl mt-2 leading-none">
-              FLASH
+              {lo.home.flash}
               <br />
-              SALE
+              {lo.home.sale}
             </h2>
             <p className="mt-4 opacity-80 max-w-md">
-              Top deals on in-stock gear. When it&apos;s gone, it&apos;s gone.
+              {lo.home.flashBody}
             </p>
             <Link
               href="/shop"
               className="mt-6 inline-flex items-center gap-2 bg-accent-brand px-6 py-3 text-sm font-bold uppercase text-accent-foreground"
             >
-              Shop deals <ArrowRight className="h-4 w-4" />
+              {lo.home.shopDeals} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
           {flashSale.length === 0 ? (
-            <div className="py-12 text-center opacity-80">No sale items right now.</div>
+            <div className="py-12 text-center opacity-80">{lo.home.noSaleItems}</div>
           ) : (
             <div className="grid grid-cols-2 gap-4">
               {flashSale.map((p) => (
@@ -216,10 +216,10 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
       </section>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <p className="text-accent-brand font-bold tracking-widest text-xs">BEST SELLERS</p>
-        <h2 className="font-display text-4xl md:text-5xl mt-2 mb-8">CHAMPION PICKS</h2>
+        <p className="text-accent-brand font-bold tracking-widest text-xs">{lo.home.bestSellers}</p>
+        <h2 className="font-display text-4xl md:text-5xl mt-2 mb-8">{lo.home.championPicks}</h2>
         {bestSellers.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">No products available.</div>
+          <div className="py-12 text-center text-muted-foreground">{lo.home.noProducts}</div>
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {bestSellers.map((p) => (
@@ -231,18 +231,18 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <p className="text-accent-brand font-bold tracking-widest text-xs">TRUSTED BY ATHLETES</p>
-            <h2 className="font-display text-4xl md:text-5xl mt-2">POPULAR BRANDS</h2>
+            <p className="text-accent-brand font-bold tracking-widest text-xs">{lo.home.trustedBy}</p>
+            <h2 className="font-display text-4xl md:text-5xl mt-2">{lo.home.popularBrands}</h2>
           </div>
           <Link
             href="/brand"
             className="hidden md:inline-flex items-center gap-2 text-sm font-semibold uppercase hover:text-accent-brand"
           >
-            View all <ArrowRight className="w-4 h-4" />
+            {lo.common.viewAll} <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
         {brands.length === 0 ? (
-          <div className="py-12 text-center text-muted-foreground">No brands available.</div>
+          <div className="py-12 text-center text-muted-foreground">{lo.home.noBrands}</div>
         ) : (
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
             {brands.map((b) => {
@@ -255,7 +255,15 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
                   className="aspect-video bg-secondary border border-border flex flex-col items-center justify-center gap-2 px-2 text-center font-display text-xl hover:bg-primary hover:text-primary-foreground transition-colors"
                 >
                   {logoUrl ? (
-                    <img src={logoUrl} alt={b.name} className="max-h-10 max-w-[80%] object-contain" />
+                    <div className="relative h-10 w-20">
+                      <Image
+                        src={logoUrl}
+                        alt={b.name}
+                        fill
+                        sizes="80px"
+                        className="object-contain"
+                      />
+                    </div>
                   ) : (
                     <span>{b.name.charAt(0)}</span>
                   )}
@@ -270,25 +278,25 @@ export function HomePageClient({ categories, products }: HomePageClientProps) {
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-8 lg:grid-cols-2 lg:items-center">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent-brand">Fast delivery</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent-brand">{lo.home.fastDelivery}</p>
             <h2 className="font-display mt-4 text-5xl leading-tight md:text-6xl">
-              Shop with confidence.
+              {lo.home.shopConfidence}
             </h2>
             <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Browse real products, categories, and brands loaded from our store API.
+              {lo.home.browseApi}
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
-              <h3 className="font-semibold">Quality gear</h3>
+              <h3 className="font-semibold">{lo.home.qualityGear}</h3>
               <p className="mt-3 text-sm text-muted-foreground">
-                Curated performance products built for everyday training and competition.
+                {lo.home.qualityBody}
               </p>
             </div>
             <div className="rounded-xl border border-border bg-background p-6 shadow-sm">
-              <h3 className="font-semibold">Simple navigation</h3>
+              <h3 className="font-semibold">{lo.home.simpleNav}</h3>
               <p className="mt-3 text-sm text-muted-foreground">
-                Explore the shop, add to cart, and checkout with live inventory.
+                {lo.home.simpleNavBody}
               </p>
             </div>
           </div>

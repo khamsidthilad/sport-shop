@@ -11,6 +11,7 @@ import { productService } from '@/services/product.api';
 import type { Category } from '@/types/category.type';
 import { getCategoryLabel } from '@/types/category.type';
 import type { Product } from '@/types/product.type';
+import { lo } from '@/lib/lao';
 
 export default function CategoryPage() {
   const { id } = useParams<{ id: string }>();
@@ -41,7 +42,7 @@ export default function CategoryPage() {
         setCategory(null);
         setProducts([]);
         setFailedCateId(cateId);
-        const message = err instanceof Error ? err.message : 'Failed to load category';
+        const message = err instanceof Error ? err.message : lo.toast.failedLoadCategory;
         toast.error(message);
       });
 
@@ -54,9 +55,9 @@ export default function CategoryPage() {
     return (
       <CustomerLayout>
         <div className="py-20 text-center">
-          <h1 className="font-display text-4xl">Category not found</h1>
+          <h1 className="font-display text-4xl">{lo.category.notFound}</h1>
           <Link href="/shop" className="mt-4 inline-block text-accent-brand underline">
-            Back to shop
+            {lo.common.backToShop}
           </Link>
         </div>
       </CustomerLayout>
@@ -66,7 +67,7 @@ export default function CategoryPage() {
   if (loading) {
     return (
       <CustomerLayout>
-        <div className="py-20 text-center text-muted-foreground">Loading category…</div>
+        <div className="py-20 text-center text-muted-foreground">{lo.category.loadingOne}</div>
       </CustomerLayout>
     );
   }
@@ -75,9 +76,9 @@ export default function CategoryPage() {
     return (
       <CustomerLayout>
         <div className="py-20 text-center">
-          <h1 className="font-display text-4xl">Category not found</h1>
+          <h1 className="font-display text-4xl">{lo.category.notFound}</h1>
           <Link href="/shop" className="mt-4 inline-block text-accent-brand underline">
-            Back to shop
+            {lo.common.backToShop}
           </Link>
         </div>
       </CustomerLayout>
@@ -92,10 +93,10 @@ export default function CategoryPage() {
         <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
           <span className="font-display text-7xl opacity-40">{label.charAt(0)}</span>
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-accent-brand">Category</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-accent-brand">{lo.category.label}</p>
             <h1 className="mt-1 font-display text-5xl md:text-6xl">{label.toUpperCase()}</h1>
             <p className="mt-2 opacity-70">
-              {products.length} {products.length === 1 ? 'product' : 'products'}
+              {lo.shop.products(products.length)}
             </p>
           </div>
         </div>
@@ -103,7 +104,7 @@ export default function CategoryPage() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         {products.length === 0 ? (
           <div className="py-20 text-center text-muted-foreground">
-            No products in this category yet.
+            {lo.category.noProducts}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

@@ -10,6 +10,7 @@ import { useAppSelector } from '@/hooks/useAppSelector';
 import { loginAdmin, logoutAdmin } from '@/redux/slices/authSlice';
 import { Sidebar } from '@/components/layouts/Sidebar';
 import { isStaffRole } from '@/types/user.type';
+import { lo } from '@/lib/lao';
 
 const schema = z.object({
   username: z.string().trim().min(2).max(50),
@@ -49,7 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-primary">
-        <p className="text-sm uppercase tracking-widest text-primary-foreground/60">Loading…</p>
+        <p className="text-sm uppercase tracking-widest text-primary-foreground/60">{lo.common.loading}</p>
       </div>
     );
   }
@@ -58,20 +59,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="min-h-screen bg-primary text-primary-foreground flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
-          <h1 className="font-display text-4xl text-center">ADMIN PANEL</h1>
+          <h1 className="font-display text-4xl text-center">{lo.adminNav.adminPanel}</h1>
           <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
             <div>
-              <label className="text-xs uppercase font-bold tracking-widest">Username</label>
+              <label className="text-xs uppercase font-bold tracking-widest">{lo.common.username}</label>
               <input {...register('username')} className="w-full mt-1 px-3 py-2 bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground" />
               {errors.username && <p className="text-xs text-accent-brand mt-1">{errors.username.message}</p>}
             </div>
             <div>
-              <label className="text-xs uppercase font-bold tracking-widest">Password</label>
+              <label className="text-xs uppercase font-bold tracking-widest">{lo.common.password}</label>
               <input type="password" {...register('password')} className="w-full mt-1 px-3 py-2 bg-primary-foreground/10 border border-primary-foreground/20 text-primary-foreground" />
               {errors.password && <p className="text-xs text-accent-brand mt-1">{errors.password.message}</p>}
             </div>
             {error && <p className="text-sm text-accent-brand">{error}</p>}
-            <button type="submit" className="w-full bg-accent-brand text-accent-foreground py-3 font-bold uppercase tracking-wider hover:opacity-90">Sign In</button>
+            <button type="submit" className="w-full bg-accent-brand text-accent-foreground py-3 font-bold uppercase tracking-wider hover:opacity-90">{lo.adminNav.signIn}</button>
           </form>
         </div>
       </div>

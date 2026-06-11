@@ -8,6 +8,7 @@ import { setItems } from '@/redux/slices/productSlice';
 import type { Product } from '@/types/product.type';
 import ProductTable from '@/components/product/ProductTable';
 import ProductForm from '@/components/product/ProductForm';
+import { lo } from '@/lib/lao';
 
 export default function ProductMgmt() {
   const dispatch = useAppDispatch();
@@ -29,8 +30,8 @@ export default function ProductMgmt() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl">PRODUCTS</h1>
-          <p className="text-muted-foreground">Manage your product catalog</p>
+          <h1 className="font-display text-3xl">{lo.admin.products}</h1>
+          <p className="text-muted-foreground">{lo.product.manageCatalog}</p>
         </div>
         <button
           type="button"
@@ -40,7 +41,7 @@ export default function ProductMgmt() {
           }}
           className="bg-accent-brand text-accent-foreground px-4 py-2 font-bold uppercase text-sm tracking-wider hover:opacity-90 flex items-center gap-2"
         >
-          <Plus className="w-4 h-4" /> Add Product
+          <Plus className="w-4 h-4" /> {lo.product.addProductBtn}
         </button>
       </div>
 

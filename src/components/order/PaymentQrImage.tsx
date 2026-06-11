@@ -3,12 +3,13 @@
 import Image from 'next/image';
 import { useState } from 'react';
 import { getPaymentImageUrl } from '@/utils/getProductImageUrl';
+import { lo } from '@/lib/lao';
 
 export function PaymentQrImage({
   src,
-  alt = 'Payment image',
+  alt = lo.order.paymentImage,
   size = 280,
-  emptyLabel = 'No payment receipt',
+  emptyLabel = lo.order.noReceipt,
   showQrFallback = true,
   className = 'mx-auto border border-border',
 }: {
@@ -29,7 +30,7 @@ export function PaymentQrImage({
           className={`flex items-center justify-center border border-border bg-secondary text-sm text-muted-foreground ${className}`}
           style={{ width: size, height: size }}
         >
-          <Image src="/assets/QR.jpeg" alt="QR code placeholder" width={size} height={size} />
+          <Image src="/assets/QR.jpeg" alt={lo.order.qrPlaceholder} width={size} height={size} />
         </div>
       );
     }

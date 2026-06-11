@@ -1,3 +1,5 @@
+import { lo } from '@/lib/lao';
+
 export interface Category {
   cate_id: number;
   cate_name: string;
@@ -32,7 +34,7 @@ export interface DeleteCategoryResponse {
 }
 
 export function getCategoryLabel(category: Category): string {
-  return category.cate_name?.trim() || 'Category';
+  return category.cate_name?.trim() || lo.common.categoryFallback;
 }
 
 export function getCategoryHref(category: Category): string | null {

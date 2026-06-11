@@ -14,6 +14,7 @@ import type {
   Supplier,
   UpdateSupplierInput,
 } from '@/types/supplier.type';
+import { lo } from '@/lib/lao';
 
 function emptySupplierInput(): CreateSupplierInput {
   return { name: '', Tel: '', address: '', pro_id: null };
@@ -34,7 +35,7 @@ function SupplierModal({ supplier, products, onSave, onClose, submitting }: { su
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md bg-card p-6 max-h-[90vh] overflow-auto">
-        <h2 className="mb-4 font-display text-2xl">{supplier ? 'EDIT' : 'ADD'} SUPPLIER</h2>
+        <h2 className="mb-4 font-display text-2xl">{supplier ? lo.admin.editSupplier : lo.admin.addSupplier}</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -54,7 +55,7 @@ function SupplierModal({ supplier, products, onSave, onClose, submitting }: { su
           className="space-y-3"
         >
           <label className="block">
-            <span className="text-xs font-bold uppercase">Name</span>
+            <span className="text-xs font-bold uppercase">{lo.common.name}</span>
             <input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -63,7 +64,7 @@ function SupplierModal({ supplier, products, onSave, onClose, submitting }: { su
             />
           </label>
           <label className="block">
-            <span className="text-xs font-bold uppercase">Telephone</span>
+            <span className="text-xs font-bold uppercase">{lo.auth.telephone}</span>
             <input
               value={form.Tel ?? ''}
               onChange={(e) => setForm({ ...form, Tel: e.target.value })}
@@ -71,7 +72,7 @@ function SupplierModal({ supplier, products, onSave, onClose, submitting }: { su
             />
           </label>
           <label className="block">
-            <span className="text-xs font-bold uppercase">Address</span>
+            <span className="text-xs font-bold uppercase">{lo.common.address}</span>
             <input
               value={form.address ?? ''}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
@@ -79,7 +80,7 @@ function SupplierModal({ supplier, products, onSave, onClose, submitting }: { su
             />
           </label>
           <label className="block">
-            <span className="text-xs font-bold uppercase">Product</span>
+            <span className="text-xs font-bold uppercase">{lo.common.product}</span>
             <select
               value={form.pro_id ?? ''}
               onChange={(e) =>
@@ -90,24 +91,24 @@ function SupplierModal({ supplier, products, onSave, onClose, submitting }: { su
               }
               className="mt-1 w-full border border-border bg-background px-3 py-2"
             >
-              <option value="">No product linked</option>
+              <option value="">{lo.admin.noProductLinked}</option>
               {products.map((p) => (
                 <option key={p.pro_id} value={p.pro_id}>
-                  {p.pro_name ?? `Product #${p.pro_id}`}
+                  {p.pro_name ?? `${lo.common.product} #${p.pro_id}`}
                 </option>
               ))}
             </select>
           </label>
           <div className="flex justify-end gap-2">
             <button type="button" onClick={onClose} disabled={submitting} className="border border-border px-4 py-2">
-              Cancel
+              {lo.common.cancel}
             </button>
             <button
               type="submit"
               disabled={submitting}
               className="bg-primary px-4 py-2 text-sm font-bold uppercase text-primary-foreground disabled:opacity-50"
             >
-              {submitting ? 'Saving…' : 'Save'}
+              {submitting ? lo.common.saving : lo.common.save}
             </button>
           </div>
         </form>
@@ -138,7 +139,7 @@ export default function AdminSupplierPage() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load suppliers';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadSuppliers;
           setError(message);
           toast.error(message);
         }
@@ -163,15 +164,15 @@ export default function AdminSupplierPage() {
       if ('sup_id' in input) {
         const updated = await supplierService.update(input);
         dispatch(setItems(suppliers.map((s) => (s.sup_id === updated.sup_id ? updated : s))));
-        toast.success('Supplier updated');
+        toast.success(lo.admin.supplierUpdated);
       } else {
         const created = await supplierService.create(input);
         dispatch(addItem(created));
-        toast.success('Supplier created');
+        toast.success(lo.admin.supplierCreated);
       }
       closeModal();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to save supplier';
+      const message = err instanceof Error ? err.message : lo.toast.failedSaveSupplier;
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -179,15 +180,15 @@ export default function AdminSupplierPage() {
   };
 
   const handleDelete = async (supplier: Supplier) => {
-    if (!confirm(`Delete "${supplier.name ?? 'this supplier'}"?`)) return;
+    if (!confirm(lo.admin.deleteConfirm(supplier.name ?? lo.admin.supplierDeleteFallback))) return;
 
     setDeletingId(supplier.sup_id);
     try {
       await supplierService.delete(supplier.sup_id);
       dispatch(setItems(suppliers.filter((s) => s.sup_id !== supplier.sup_id)));
-      toast.success('Supplier deleted');
+      toast.success(lo.admin.supplierDeleted);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete supplier';
+      const message = err instanceof Error ? err.message : lo.toast.failedDeleteSupplier;
       toast.error(message);
     } finally {
       setDeletingId(null);
@@ -198,9 +199,9 @@ export default function AdminSupplierPage() {
     <div className="p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-3xl">SUPPLIERS</h1>
+          <h1 className="font-display text-3xl">{lo.admin.suppliers}</h1>
           <p className="text-muted-foreground">
-            {loading ? 'Loading…' : `${suppliers.length} total`}
+            {loading ? lo.common.loading : lo.admin.total(suppliers.length)}
           </p>
         </div>
         <button
@@ -211,7 +212,7 @@ export default function AdminSupplierPage() {
           }}
           className="flex items-center gap-2 bg-accent-brand px-4 py-2 text-sm font-bold uppercase text-accent-foreground"
         >
-          <Plus className="h-4 w-4" /> Add
+          <Plus className="h-4 w-4" /> {lo.common.add}
         </button>
       </div>
 
@@ -223,19 +224,19 @@ export default function AdminSupplierPage() {
 
       <div className="overflow-x-auto border border-border bg-card">
         {loading ? (
-          <div className="p-12 text-center text-muted-foreground">Loading suppliers…</div>
+          <div className="p-12 text-center text-muted-foreground">{lo.admin.loadingSuppliers}</div>
         ) : suppliers.length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground">No suppliers found.</div>
+          <div className="p-12 text-center text-muted-foreground">{lo.admin.noSuppliers}</div>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-secondary text-xs uppercase">
               <tr>
-                <th className="p-3 text-left">ID</th>
-                <th className="p-3 text-left">Name</th>
-                <th className="p-3 text-left">Tel</th>
-                <th className="p-3 text-left">Address</th>
-                <th className="p-3 text-left">Product</th>
-                <th className="p-3 text-center">Actions</th>
+                <th className="p-3 text-left">{lo.admin.id}</th>
+                <th className="p-3 text-left">{lo.common.name}</th>
+                <th className="p-3 text-left">{lo.common.tel}</th>
+                <th className="p-3 text-left">{lo.common.address}</th>
+                <th className="p-3 text-left">{lo.common.product}</th>
+                <th className="p-3 text-center">{lo.common.actions}</th>
               </tr>
             </thead>
             <tbody>
@@ -245,10 +246,10 @@ export default function AdminSupplierPage() {
                 return (
                   <tr key={s.sup_id} className="border-t border-border hover:bg-secondary/50">
                     <td className="p-3 font-mono text-xs">{s.sup_id}</td>
-                    <td className="p-3 font-semibold">{s.name ?? '—'}</td>
-                    <td className="p-3">{s.Tel ?? '—'}</td>
-                    <td className="p-3">{s.address ?? '—'}</td>
-                    <td className="p-3">{s.product?.pro_name ?? (s.pro_id ? `#${s.pro_id}` : '—')}</td>
+                    <td className="p-3 font-semibold">{s.name ?? lo.common.na}</td>
+                    <td className="p-3">{s.Tel ?? lo.common.na}</td>
+                    <td className="p-3">{s.address ?? lo.common.na}</td>
+                    <td className="p-3">{s.product?.pro_name ?? (s.pro_id ? `#${s.pro_id}` : lo.common.na)}</td>
                     <td className="p-3">
                       <div className="flex justify-center gap-1">
                         <button

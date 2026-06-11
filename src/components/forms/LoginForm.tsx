@@ -13,10 +13,11 @@ import { useCustomerSession } from '@/hooks/useCustomerSession';
 import { loginCustomer, clearError } from '@/redux/slices/authSlice';
 import type { LoginCredentials } from '@/types/auth.type';
 import { CustomerLayout } from '@/components/layouts/CustomerLayout';
+import { lo } from '@/lib/lao';
 
 const loginSchema = z.object({
-  username: z.string().trim().min(2, 'Required').max(50),
-  password: z.string().min(4, 'Required').max(100),
+  username: z.string().trim().min(2, lo.common.required).max(50),
+  password: z.string().min(4, lo.common.required).max(100),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -51,21 +52,21 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginCredentials) => {
     try {
       await dispatch(loginCustomer(data)).unwrap();
-      toast.success('Welcome back!');
+      toast.success(lo.auth.welcomeBack);
     } catch (message) {
-      toast.error(typeof message === 'string' ? message : 'Login failed');
+      toast.error(typeof message === 'string' ? message : lo.auth.loginFailed);
     }
   };
 
   return (
     <CustomerLayout>
       <div className="mx-auto max-w-md px-4 py-16">
-        <h1 className="text-center font-display text-4xl">LOGIN</h1>
+        <h1 className="text-center font-display text-4xl">{lo.auth.login}</h1>
         <p className="mt-2 text-center text-sm text-muted-foreground">
         </p>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-4">
           <div>
-            <label className="text-xs font-bold uppercase tracking-widest">Username</label>
+            <label className="text-xs font-bold uppercase tracking-widest">{lo.common.username}</label>
             <input
               {...register('username')}
               autoComplete="username"
@@ -76,7 +77,7 @@ export default function LoginForm() {
             )}
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-widest">Password</label>
+            <label className="text-xs font-bold uppercase tracking-widest">{lo.common.password}</label>
             <input
               type="password"
               {...register('password')}
@@ -93,13 +94,13 @@ export default function LoginForm() {
             disabled={loading}
             className="w-full bg-primary py-3 font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand disabled:opacity-60"
           >
-            {loading ? 'Signing in…' : 'Login'}
+            {loading ? lo.auth.signingIn : lo.auth.login}
           </button>
         </form>
         <p className="mt-6 text-center text-sm">
-          No account?{' '}
+          {lo.auth.noAccount}{' '}
           <Link href="/register" className="font-semibold text-accent-brand">
-            Register
+            {lo.nav.register}
           </Link>
         </p>
       </div>

@@ -1,3 +1,4 @@
+import { lo, statusLabel } from '@/lib/lao';
 import type { Customer } from '@/types/customer.type';
 
 export type ShippingStatus =
@@ -117,17 +118,16 @@ export interface CustomerOrderStats {
 }
 
 export function getOrderCustomerName(order: Order): string {
-  return order.customer?.cus_name ?? '—';
+  return order.customer?.cus_name ?? lo.common.na;
 }
 
 export function getOrderDate(order: Order): string {
   return order.date ?? order.createdAt;
 }
 
-export function formatStatusLabel(status: string | null | undefined | File  ): string {
-  if (!status) return '—';
-  if (status instanceof File) return '—';
-  return status.charAt(0).toUpperCase() + status.slice(1);
+export function formatStatusLabel(status: string | null | undefined | File): string {
+  if (!status || status instanceof File) return lo.common.na;
+  return statusLabel(status);
 }
 
 const PAYMENT_PAID_STATUSES = new Set([
@@ -187,7 +187,7 @@ export function getPaymentDisplayLabel(
   status: string | null | undefined,
   order?: Pick<Order, 'payment_image' | 'shipping_status'>,
 ): string {
-  if (order && isOrderCancelled(order as Order)) return 'ยกเลิกแล้ว';
+  if (order && isOrderCancelled(order as Order)) return lo.order.cancelled;
 
   const orderLike = {
     payment_status: status ?? null,
@@ -195,13 +195,13 @@ export function getPaymentDisplayLabel(
     shipping_status: order?.shipping_status ?? null,
   } as Order;
 
-  if (isPaymentComplete(orderLike)) return 'ชำระสำเร็จ';
+  if (isPaymentComplete(orderLike)) return lo.order.paymentComplete;
 
   const normalized = status?.toLowerCase().trim();
   if (!normalized || normalized === 'pending' || normalized === 'unpaid' || normalized === 'waiting') {
-    return 'รอชำระเงิน';
+    return lo.order.awaitingPayment;
   }
-  if (normalized === 'rejected' || normalized === 'failed') return 'ชำระไม่สำเร็จ';
+  if (normalized === 'rejected' || normalized === 'failed') return lo.order.paymentFailed;
   return formatStatusLabel(status);
 }
 
@@ -230,7 +230,7 @@ export function getPaymentStatusTone(
 }
 
 export function getShippingDisplayLabel(status: string | null | undefined): string {
-  if (status?.toLowerCase().trim() === 'cancelled') return 'ยกเลิกแล้ว';
+  if (status?.toLowerCase().trim() === 'cancelled') return lo.order.cancelled;
   return formatStatusLabel(status);
 }
 

@@ -7,6 +7,7 @@ import { CustomerLayout } from '@/components/layouts/CustomerLayout';
 import { productService } from '@/services/product.api';
 import type { Brand } from '@/types/brand.type';
 import type { Product } from '@/types/product.type';
+import { lo } from '@/lib/lao';
 
 export default function BrandsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -24,7 +25,7 @@ export default function BrandsPage() {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        const message = err instanceof Error ? err.message : 'Failed to load brands';
+        const message = err instanceof Error ? err.message : lo.toast.failedLoadBrands;
         setError(message);
         toast.error(message);
       })
@@ -58,7 +59,7 @@ export default function BrandsPage() {
   if (loading) {
     return (
       <CustomerLayout>
-        <div className="py-20 text-center text-muted-foreground">Loading brands…</div>
+        <div className="py-20 text-center text-muted-foreground">{lo.brandPage.loading}</div>
       </CustomerLayout>
     );
   }
@@ -75,13 +76,13 @@ export default function BrandsPage() {
     <CustomerLayout>
       <div className="bg-primary py-12 text-primary-foreground">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="font-display text-5xl">POPULAR BRANDS</h1>
+          <h1 className="font-display text-5xl">{lo.brandPage.title}</h1>
         </div>
       </div>
       <div className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-12 sm:px-6 md:grid-cols-3 lg:px-8">
         {brands.length === 0 ? (
           <div className="col-span-full py-12 text-center text-muted-foreground">
-            No brands available.
+            {lo.brandPage.noBrands}
           </div>
         ) : (
           brands.map((b) => {
@@ -95,7 +96,7 @@ export default function BrandsPage() {
                 <div className="font-display text-3xl">{b.name}</div>
                 <p className="mt-1 text-sm text-accent-brand">{b.tagline}</p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {b.country} · {count} products
+                  {b.country} · {lo.shop.products(count)}
                 </p>
               </Link>
             );

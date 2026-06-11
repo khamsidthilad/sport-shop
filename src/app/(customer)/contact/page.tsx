@@ -9,11 +9,12 @@ import { toast } from 'sonner';
 import { CustomerLayout } from '@/components/layouts/CustomerLayout';
 import { contactService } from '@/services/contact.api';
 import type { ContactInfo } from '@/types/contact.type';
+import { lo } from '@/lib/lao';
 
 const contactSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(100),
-  email: z.string().trim().email('Enter a valid email').max(255),
-  message: z.string().trim().min(1, 'Message is required').max(1000),
+  name: z.string().trim().min(1, lo.contact.nameRequired).max(100),
+  email: z.string().trim().email(lo.contact.emailInvalid).max(255),
+  message: z.string().trim().min(1, lo.contact.messageRequired).max(1000),
 });
 
 type ContactFormValues = z.infer<typeof contactSchema>;
@@ -22,7 +23,7 @@ const defaultInfo: ContactInfo = {
   email: 'hello@sportshop.com',
   phone: '+66 2 123 4567',
   address: '123 Sukhumvit Rd, Bangkok 10110',
-  shopName: 'Sport Shop',
+  shopName: lo.brand.sportShop,
 };
 
 export default function ContactPage() {
@@ -49,7 +50,7 @@ export default function ContactPage() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load contact info';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadContact;
           toast.error(message);
         }
       })
@@ -66,10 +67,10 @@ export default function ContactPage() {
     setSubmitting(true);
     try {
       await contactService.submit(data);
-      toast.success('Message sent');
+      toast.success(lo.contact.sent);
       reset();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to send message';
+      const message = err instanceof Error ? err.message : lo.toast.failedSendMessage;
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -80,16 +81,16 @@ export default function ContactPage() {
     <CustomerLayout>
       <div className="mx-auto grid max-w-5xl gap-12 px-4 py-16 md:grid-cols-2">
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-accent-brand">Contact</p>
-          <h1 className="font-display mt-2 text-5xl">GET IN TOUCH</h1>
+          <p className="text-xs font-bold uppercase tracking-widest text-accent-brand">{lo.contact.label}</p>
+          <h1 className="font-display mt-2 text-5xl">{lo.contact.title}</h1>
           <p className="mt-4 text-muted-foreground">
-            Questions about gear, sizing, or orders? Our team is here for you.
+            {lo.contact.body}
           </p>
           <div className="mt-8 space-y-4 text-sm">
             <div className="flex gap-3">
               <Mail className="h-5 w-5 shrink-0 text-accent-brand" />
               {loadingInfo ? (
-                <span className="text-muted-foreground">Loading...</span>
+                <span className="text-muted-foreground">{lo.common.loading}</span>
               ) : (
                 <a href={`mailto:${info.email}`} className="hover:text-accent-brand">
                   {info.email}
@@ -99,7 +100,7 @@ export default function ContactPage() {
             <div className="flex gap-3">
               <Phone className="h-5 w-5 shrink-0 text-accent-brand" />
               {loadingInfo ? (
-                <span className="text-muted-foreground">Loading...</span>
+                <span className="text-muted-foreground">{lo.common.loading}</span>
               ) : (
                 <a href={`tel:${info.phone.replace(/\s/g, '')}`} className="hover:text-accent-brand">
                   {info.phone}
@@ -109,7 +110,7 @@ export default function ContactPage() {
             <div className="flex gap-3">
               <MapPin className="h-5 w-5 shrink-0 text-accent-brand" />
               {loadingInfo ? (
-                <span className="text-muted-foreground">Loading...</span>
+                <span className="text-muted-foreground">{lo.common.loading}</span>
               ) : (
                 <span>{info.address}</span>
               )}
@@ -120,7 +121,7 @@ export default function ContactPage() {
           <div>
             <input
               {...register('name')}
-              placeholder="Name"
+              placeholder={lo.common.name}
               className="w-full border border-border bg-background px-3 py-2"
             />
             {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name.message}</p>}
@@ -129,7 +130,7 @@ export default function ContactPage() {
             <input
               {...register('email')}
               type="email"
-              placeholder="Email"
+              placeholder={lo.common.email}
               className="w-full border border-border bg-background px-3 py-2"
             />
             {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email.message}</p>}
@@ -138,7 +139,7 @@ export default function ContactPage() {
             <textarea
               {...register('message')}
               rows={5}
-              placeholder="Message"
+              placeholder={lo.contact.message}
               className="w-full border border-border bg-background px-3 py-2"
             />
             {errors.message && (
@@ -150,7 +151,7 @@ export default function ContactPage() {
             disabled={submitting}
             className="bg-primary px-6 py-2 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand disabled:opacity-60"
           >
-            {submitting ? 'Sending...' : 'Send'}
+            {submitting ? lo.common.sending : lo.common.send}
           </button>
         </form>
       </div>

@@ -6,13 +6,14 @@ import { ShoppingCart, User, Menu, Search, X } from 'lucide-react';
 import { useState } from 'react';
 import { useCartCount } from '@/hooks/useCartCount';
 import { useCustomerSession } from '@/hooks/useCustomerSession';
+import { lo } from '@/lib/lao';
 
 const nav = [
-  { href: '/', label: 'Home' },
-  { href: '/shop', label: 'Shop' },
-  { href: '/category', label: 'Categories' },
-  { href: '/brand', label: 'Brands' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/', label: lo.nav.home },
+  { href: '/shop', label: lo.nav.shop },
+  { href: '/category', label: lo.nav.categories },
+  { href: '/brand', label: lo.nav.brands },
+  { href: '/contact', label: lo.nav.contact },
 ] as const;
 
 export function Header() {
@@ -26,7 +27,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="font-display text-2xl tracking-wider">
-            SPORT<span className="text-accent-brand">SHOP</span>
+            {lo.brand.sport}<span className="text-accent-brand">{lo.brand.shop}</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-8">
             {nav.map((n) => (
@@ -42,7 +43,7 @@ export function Header() {
             ))}
           </nav>
           <div className="flex items-center gap-3">
-            <Link href="/shop" aria-label="Search" className="p-2 hover:text-accent-brand">
+            <Link href="/shop" aria-label={lo.common.search} className="p-2 hover:text-accent-brand">
               <Search className="w-5 h-5" />
             </Link>
             <Link href="/cart" className="relative p-2 hover:text-accent-brand">
@@ -62,14 +63,14 @@ export function Header() {
                 href="/login"
                 className="hidden sm:inline-block text-sm font-semibold uppercase border border-primary px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
               >
-                Login
+                {lo.nav.login}
               </Link>
             )}
             <button
               type="button"
               className="lg:hidden p-2"
               onClick={() => setOpen(!open)}
-              aria-label="Menu"
+              aria-label={lo.nav.menu}
             >
               {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -90,10 +91,10 @@ export function Header() {
             {!session && (
               <>
                 <Link href="/login" onClick={() => setOpen(false)} className="text-sm font-medium uppercase">
-                  Login
+                  {lo.nav.login}
                 </Link>
                 <Link href="/register" onClick={() => setOpen(false)} className="text-sm font-medium uppercase">
-                  Register
+                  {lo.nav.register}
                 </Link>
               </>
             )}

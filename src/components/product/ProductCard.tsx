@@ -10,6 +10,7 @@ import { addToCart } from '@/redux/slices/cartSlice';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageUrl } from '@/utils/getProductImageUrl';
 import type { Product } from '@/types/product.type';
+import { lo } from '@/lib/lao';
 
 function parsePrice(price?: string) {
   return Number(price ?? 0);
@@ -41,7 +42,7 @@ function ProductImage({ src, alt }: { src?: string; alt: string }) {
 
 export function ProductCard({ product }: { product: Product }) {
   const dispatch = useAppDispatch();
-  const name = product.pro_name ?? 'Product';
+  const name = product.pro_name ?? lo.common.product;
   const price = parsePrice(product.pro_price);
   const inStock = product.pro_qty > 0;
   const productHref =
@@ -60,7 +61,7 @@ export function ProductCard({ product }: { product: Product }) {
           <ProductImage src={product.pro_image} alt={name} />
           {!inStock && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80">
-              <span className="font-display text-2xl">OUT OF STOCK</span>
+              <span className="font-display text-2xl">{lo.product.outOfStockBadge}</span>
             </div>
           )}
         </div>
@@ -75,12 +76,12 @@ export function ProductCard({ product }: { product: Product }) {
           </h3>
         </Link>
         <p className="mt-2 text-xs text-muted-foreground">
-          {product.category?.cate_name ?? 'Uncategorized'}
+          {product.category?.cate_name ?? lo.common.uncategorized}
         </p>
         <div className="mt-3 flex items-end justify-between">
           <span className="text-lg font-bold text-accent-brand">{formatCurrency(price)}</span>
           <span className={`text-xs ${inStock ? 'text-green-600' : 'text-destructive'}`}>
-            {inStock ? `${product.pro_qty} in stock` : 'Out of stock'}
+            {inStock ? lo.product.inStockShort(product.pro_qty) : lo.product.outOfStock}
           </span>
         </div>
         <div className="mt-3 flex gap-2">
@@ -96,16 +97,16 @@ export function ProductCard({ product }: { product: Product }) {
                   color: '',
                 }),
               );
-              toast.success('Added to cart');
+              toast.success(lo.product.addedToCart);
             }}
             className="flex flex-1 items-center justify-center gap-2 bg-primary py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-accent-brand disabled:opacity-50"
           >
-            <ShoppingCart className="h-4 w-4" /> Add
+            <ShoppingCart className="h-4 w-4" /> {lo.common.add}
           </button>
           <Link
             href={productHref}
             className="flex w-10 items-center justify-center border border-border transition-colors hover:bg-secondary"
-            aria-label="View product"
+            aria-label={lo.product.viewProduct}
           >
             <Eye className="h-4 w-4" />
           </Link>

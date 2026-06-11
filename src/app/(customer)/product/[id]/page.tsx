@@ -15,6 +15,7 @@ import { getProductImageUrl } from '@/utils/getProductImageUrl';
 import { productService } from '@/services/product.api';
 import { PRODUCT_COLORS, PRODUCT_SIZES } from '@/constants/productOptions';
 import type { Product } from '@/types/product.type';
+import { lo } from '@/lib/lao';
 
 function parsePrice(price?: string) {
   return Number(price ?? 0);
@@ -98,7 +99,7 @@ export default function ProductDetailPage() {
         setProduct(null);
         setRelated([]);
         setFailedProId(proId);
-        const message = err instanceof Error ? err.message : 'Failed to load product';
+        const message = err instanceof Error ? err.message : lo.toast.failedLoadProduct;
         toast.error(message);
       });
 
@@ -111,9 +112,9 @@ export default function ProductDetailPage() {
     return (
       <CustomerLayout>
         <div className="py-20 text-center">
-          <h1 className="font-display text-4xl">Product not found</h1>
+          <h1 className="font-display text-4xl">{lo.product.notFound}</h1>
           <Link href="/shop" className="mt-4 inline-block text-accent-brand underline">
-            Back to shop
+            {lo.common.backToShop}
           </Link>
         </div>
       </CustomerLayout>
@@ -123,7 +124,7 @@ export default function ProductDetailPage() {
   if (loading) {
     return (
       <CustomerLayout>
-        <div className="py-20 text-center text-muted-foreground">Loading product…</div>
+        <div className="py-20 text-center text-muted-foreground">{lo.product.loading}</div>
       </CustomerLayout>
     );
   }
@@ -132,26 +133,26 @@ export default function ProductDetailPage() {
     return (
       <CustomerLayout>
         <div className="py-20 text-center">
-          <h1 className="font-display text-4xl">Product not found</h1>
+          <h1 className="font-display text-4xl">{lo.product.notFound}</h1>
           <Link href="/shop" className="mt-4 inline-block text-accent-brand underline">
-            Back to shop
+            {lo.common.backToShop}
           </Link>
         </div>
       </CustomerLayout>
     );
   }
 
-  const name = product.pro_name ?? 'Product';
+  const name = product.pro_name ?? lo.common.product;
   const price = parsePrice(product.pro_price);
   const inStock = product.pro_qty > 0;
 
   const handleAdd = (buyNow = false) => {
     if (PRODUCT_SIZES.length > 1 && !size) {
-      toast.error('Please select a size');
+      toast.error(lo.product.selectSize);
       return;
     }
     if (PRODUCT_COLORS.length > 1 && !color) {
-      toast.error('Please select a color');
+      toast.error(lo.product.selectColor);
       return;
     }
 
@@ -163,7 +164,7 @@ export default function ProductDetailPage() {
         color: color || PRODUCT_COLORS[0].name,
       }),
     );
-    toast.success('Added to cart');
+    toast.success(lo.product.addedToCart);
     if (buyNow) router.push('/cart');
   };
 
@@ -172,11 +173,11 @@ export default function ProductDetailPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <nav className="mb-6 text-sm text-muted-foreground">
           <Link href="/" className="hover:text-accent-brand">
-            Home
+            {lo.nav.home}
           </Link>{' '}
           /{' '}
           <Link href="/shop" className="hover:text-accent-brand">
-            Shop
+            {lo.nav.shop}
           </Link>{' '}
           / {name}
         </nav>
@@ -188,7 +189,7 @@ export default function ProductDetailPage() {
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-accent-brand">
-              {product.brand?.name ?? '—'} · {product.category?.cate_name ?? 'Uncategorized'}
+              {product.brand?.name ?? lo.common.na} · {product.category?.cate_name ?? lo.common.uncategorized}
             </p>
             <h1 className="font-display mt-2 text-4xl md:text-5xl">{name}</h1>
             <div className="mt-6 flex items-end gap-3">
@@ -197,14 +198,14 @@ export default function ProductDetailPage() {
             <p
               className={`mt-3 text-sm font-semibold ${inStock ? 'text-green-600' : 'text-destructive'}`}
             >
-              {inStock ? `In stock (${product.pro_qty} available)` : 'Out of stock'}
+              {inStock ? lo.product.inStock(product.pro_qty) : lo.product.outOfStock}
             </p>
             {product.pro_detail && (
               <p className="mt-6 text-muted-foreground">{product.pro_detail}</p>
             )}
 
             <div className="mt-6">
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest">Size</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest">{lo.product.size}</p>
               <div className="flex flex-wrap gap-2">
                 {PRODUCT_SIZES.map((s) => (
                   <button
@@ -224,7 +225,7 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="mt-4">
-              <p className="mb-2 text-xs font-bold uppercase tracking-widest">Color</p>
+              <p className="mb-2 text-xs font-bold uppercase tracking-widest">{lo.product.color}</p>
               <div className="flex flex-wrap gap-2">
                 {PRODUCT_COLORS.map((c) => (
                   <button
@@ -248,7 +249,7 @@ export default function ProductDetailPage() {
             </div>
 
             <div className="mt-6 flex items-center gap-3">
-              <p className="text-xs font-bold uppercase tracking-widest">Quantity</p>
+              <p className="text-xs font-bold uppercase tracking-widest">{lo.common.quantity}</p>
               <div className="flex border border-border">
                 <button
                   type="button"
@@ -276,7 +277,7 @@ export default function ProductDetailPage() {
                 disabled={!inStock}
                 className="flex-1 bg-primary py-4 font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand disabled:opacity-50"
               >
-                Add To Cart
+                {lo.product.addToCart}
               </button>
               <button
                 type="button"
@@ -284,19 +285,19 @@ export default function ProductDetailPage() {
                 disabled={!inStock}
                 className="flex-1 bg-accent-brand py-4 font-bold uppercase tracking-wider text-accent-foreground hover:opacity-90 disabled:opacity-50"
               >
-                Buy Now
+                {lo.product.buyNow}
               </button>
             </div>
 
             <div className="mt-8 grid grid-cols-1 gap-4 border-t border-border pt-6 text-xs sm:grid-cols-3">
               <div className="flex items-center gap-2">
-                <Truck className="h-5 w-5 text-accent-brand" /> Free shipping over ฿5,000
+                <Truck className="h-5 w-5 text-accent-brand" /> {lo.product.freeShipping}
               </div>
               <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-accent-brand" /> 100% Authentic
+                <Shield className="h-5 w-5 text-accent-brand" /> {lo.product.authentic}
               </div>
               <div className="flex items-center gap-2">
-                <RotateCcw className="h-5 w-5 text-accent-brand" /> 30-day returns
+                <RotateCcw className="h-5 w-5 text-accent-brand" /> {lo.product.returns}
               </div>
             </div>
           </div>
@@ -304,7 +305,7 @@ export default function ProductDetailPage() {
 
         {related.length > 0 && (
           <div className="mt-16">
-            <h2 className="font-display mb-6 text-3xl">RELATED PRODUCTS</h2>
+            <h2 className="font-display mb-6 text-3xl">{lo.product.related}</h2>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               {related.map((p) => (
                 <ProductCard key={p.pro_id} product={p} />

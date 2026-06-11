@@ -10,6 +10,7 @@ import type {
   RegisterInput,
   CustomerAuthData,
 } from '@/types/auth.type';
+import { lo } from '@/lib/lao';
 import { isStaffRole } from '@/types/user.type';
 
 const CUSTOMER_STORAGE_KEY = 'auth_session';
@@ -35,7 +36,7 @@ function getErrorMessage(error: unknown): string {
     return data?.message ?? error.message;
   }
   if (error instanceof Error) return error.message;
-  return 'Request failed';
+  return lo.common.requestFailed;
 }
 
 function persistCustomerSession(session: CustomerAuthData | null) {

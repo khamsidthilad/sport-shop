@@ -15,6 +15,7 @@ import { ProductCard } from '@/components/product/ProductCard';
 import { CustomerLayout } from '@/components/layouts/CustomerLayout';
 import type { Brand } from '@/types/brand.type';
 import type { Product } from '@/types/product.type';
+import { lo } from '@/lib/lao';
 
 function parsePrice(price?: string) {
   return Number(price ?? 0);
@@ -29,16 +30,13 @@ export default function ShopPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [catId, setCatId] = useState('');
-  const [brandId, setBrandId] = useState('');
+  const urlBrandId = searchParams.get('brand') ?? '';
+  const [manualBrandId, setManualBrandId] = useState<string | null>(null);
+  const brandId = manualBrandId !== null ? manualBrandId : urlBrandId;
   const [maxPrice, setMaxPrice] = useState(10000);
   const [sort, setSort] = useState('featured');
   const [page, setPage] = useState(1);
   const perPage = 12;
-
-  useEffect(() => {
-    const brand = searchParams.get('brand');
-    if (brand) setBrandId(brand);
-  }, [searchParams]);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,7 +65,7 @@ export default function ShopPage() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load shop';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadShop;
           setError(message);
           toast.error(message);
         }
@@ -130,9 +128,9 @@ export default function ShopPage() {
     <CustomerLayout>
       <div className="bg-primary py-12 text-primary-foreground">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h1 className="font-display text-5xl md:text-6xl">SHOP ALL</h1>
+          <h1 className="font-display text-5xl md:text-6xl">{lo.shop.title}</h1>
           <p className="mt-2 opacity-70">
-            {loading ? 'Loading…' : `${filtered.length} products`}
+            {loading ? lo.common.loading : lo.shop.products(filtered.length)}
           </p>
         </div>
       </div>
@@ -149,7 +147,7 @@ export default function ShopPage() {
         <aside className="space-y-6">
           <div>
             <label className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-              <Search className="h-4 w-4" /> Search
+              <Search className="h-4 w-4" /> {lo.common.search}
             </label>
             <input
               value={search}
@@ -157,13 +155,13 @@ export default function ShopPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              placeholder="Search products..."
+              placeholder={lo.shop.searchPlaceholder}
               className="w-full border border-border bg-background px-3 py-2"
             />
           </div>
           <div>
             <label className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest">
-              <SlidersHorizontal className="h-4 w-4" /> Category
+              <SlidersHorizontal className="h-4 w-4" /> {lo.shop.category}
             </label>
             <select
               value={catId}
@@ -173,7 +171,7 @@ export default function ShopPage() {
               }}
               className="w-full border border-border bg-background px-3 py-2"
             >
-              <option value="">All categories</option>
+              <option value="">{lo.shop.allCategories}</option>
               {categories.map((c) => (
                 <option key={c.cate_id} value={String(c.cate_id)}>
                   {c.cate_name}
@@ -182,16 +180,16 @@ export default function ShopPage() {
             </select>
           </div>
           <div>
-            <label className="mb-2 block text-xs font-bold uppercase tracking-widest">Brand</label>
+            <label className="mb-2 block text-xs font-bold uppercase tracking-widest">{lo.shop.brand}</label>
             <select
               value={brandId}
               onChange={(e) => {
-                setBrandId(e.target.value);
+                setManualBrandId(e.target.value);
                 setPage(1);
               }}
               className="w-full border border-border bg-background px-3 py-2"
             >
-              <option value="">All brands</option>
+              <option value="">{lo.shop.allBrands}</option>
               {brands.map((b) => (
                 <option key={b.brand_id} value={String(b.brand_id)}>
                   {b.name}
@@ -201,7 +199,7 @@ export default function ShopPage() {
           </div>
           <div>
             <label className="mb-2 block text-xs font-bold uppercase tracking-widest">
-              Max Price: ฿{maxPrice.toLocaleString()}
+              {lo.shop.maxPrice(maxPrice)}
             </label>
             <input
               type="range"
@@ -218,38 +216,38 @@ export default function ShopPage() {
             onClick={() => {
               setSearch('');
               setCatId('');
-              setBrandId('');
+              setManualBrandId('');
               setMaxPrice(priceCeiling);
               setPage(1);
             }}
             className="w-full border border-border py-2 text-sm font-semibold uppercase hover:bg-secondary"
           >
-            Reset Filters
+            {lo.shop.resetFilters}
           </button>
         </aside>
 
         <div>
           <div className="mb-4 flex items-center justify-between">
             <span className="text-sm text-muted-foreground">
-              {loading ? 'Loading products…' : `Showing ${paged.length} of ${filtered.length}`}
+              {loading ? lo.shop.loadingProducts : lo.shop.showing(paged.length, filtered.length)}
             </span>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value)}
               className="border border-border bg-background px-3 py-2 text-sm"
             >
-              <option value="featured">Featured</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="name">Name A-Z</option>
+              <option value="featured">{lo.shop.sortFeatured}</option>
+              <option value="price-asc">{lo.shop.sortPriceLow}</option>
+              <option value="price-desc">{lo.shop.sortPriceHigh}</option>
+              <option value="name">{lo.shop.sortName}</option>
             </select>
           </div>
 
           {loading ? (
-            <div className="py-20 text-center text-muted-foreground">Loading products…</div>
+            <div className="py-20 text-center text-muted-foreground">{lo.shop.loadingProducts}</div>
           ) : paged.length === 0 ? (
             <div className="py-20 text-center text-muted-foreground">
-              No products match your filters.
+              {lo.shop.noMatch}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">

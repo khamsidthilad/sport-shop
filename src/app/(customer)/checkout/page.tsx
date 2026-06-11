@@ -21,7 +21,6 @@ import { getDisplayName } from '@/types/auth.type';
 import {
   canCancelOrder,
   canUploadPaymentReceipt,
-  formatStatusLabel,
   getPaymentDisplayLabel,
   isOrderAwaitingPayment,
   isOrderCancelled,
@@ -29,12 +28,13 @@ import {
   type Order,
 } from '@/types/order.type';
 import type { Product } from '@/types/product.type';
+import { lo, statusLabel } from '@/lib/lao';
 
 const schema = z.object({
-  fullName: z.string().trim().min(2, 'Required').max(100),
+  fullName: z.string().trim().min(2, lo.common.required).max(100),
   email: z.string().trim().email().max(255),
-  tel: z.string().trim().min(8, 'Required').max(20),
-  address: z.string().trim().min(5, 'Required').max(255),
+  tel: z.string().trim().min(8, lo.common.required).max(20),
+  address: z.string().trim().min(5, lo.common.required).max(255),
   city: z.string().trim().min(2).max(100),
   postalCode: z.string().trim().min(4).max(10),
   payment: z.literal('QR'),
@@ -79,7 +79,7 @@ export default function CheckoutPage() {
 
     const orderId = Number(payOrderId);
     if (!Number.isFinite(orderId)) {
-      toast.error('Invalid order');
+      toast.error(lo.toast.invalidOrder);
       return;
     }
 
@@ -90,7 +90,7 @@ export default function CheckoutPage() {
       .then((order) => {
         if (cancelled) return;
         if (order.cus_id !== session.customer.cus_id) {
-          toast.error('Order not found');
+          toast.error(lo.toast.orderNotFound);
           router.replace('/profile');
           return;
         }
@@ -98,7 +98,7 @@ export default function CheckoutPage() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load order';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadOrders;
           toast.error(message);
         }
       })
@@ -125,7 +125,7 @@ export default function CheckoutPage() {
       .catch((err: unknown) => {
         if (!cancelled) {
           setFetchFailed(true);
-          const message = err instanceof Error ? err.message : 'Failed to load products';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadProducts;
           toast.error(message);
         }
       });
@@ -180,13 +180,13 @@ export default function CheckoutPage() {
 
   const onSubmit = async () => {
     if (!session?.token) {
-      toast.error('Please log in as a customer to checkout');
+      toast.error(lo.checkout.loginRequired);
       router.push('/login');
       return;
     }
 
     if (enriched.length === 0) {
-      toast.error('No valid products in cart');
+      toast.error(lo.checkout.noValidCart);
       return;
     }
 
@@ -205,9 +205,9 @@ export default function CheckoutPage() {
         (await orderService.getById(created.orderId));
       dispatch(clearCart());
       setPlacedOrder(order);
-      toast.success(`Order #${order.order_id} placed! Scan QR to pay.`);
+      toast.success(lo.checkout.orderPlaced(order.order_id));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to place order';
+      const message = err instanceof Error ? err.message : lo.toast.failedPlaceOrder;
       toast.error(message);
     } finally {
       setSubmitting(false);
@@ -216,7 +216,7 @@ export default function CheckoutPage() {
 
   const handleUploadReceipt = async () => {
     if (!placedOrder || !receiptFile) {
-      toast.error('Please select a payment receipt image');
+      toast.error(lo.checkout.selectReceipt);
       return;
     }
 
@@ -229,9 +229,9 @@ export default function CheckoutPage() {
         payment_status: result.paymentStatus ?? refreshed.payment_status ?? 'submitted',
       });
       setReceiptFile(null);
-      toast.success('ชำระเงินสำเร็จ');
+      toast.success(lo.checkout.paymentUploaded);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to upload receipt';
+      const message = err instanceof Error ? err.message : lo.toast.failedUploadReceipt;
       toast.error(message);
     } finally {
       setUploading(false);
@@ -240,16 +240,16 @@ export default function CheckoutPage() {
 
   const handleCancelOrder = async () => {
     if (!placedOrder) return;
-    if (!confirm(`ยกเลิก order #${placedOrder.order_id}?`)) return;
+    if (!confirm(lo.checkout.cancelConfirm(placedOrder.order_id))) return;
 
     setCancelling(true);
     try {
       const updated = await orderService.cancel(placedOrder.order_id);
       setPlacedOrder(updated);
-      toast.success('ยกเลิก order สำเร็จ');
+      toast.success(lo.checkout.cancelSuccess);
       router.push('/profile');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to cancel order';
+      const message = err instanceof Error ? err.message : lo.toast.failedCancelOrder;
       toast.error(message);
     } finally {
       setCancelling(false);
@@ -267,7 +267,7 @@ export default function CheckoutPage() {
   if (!mounted || loadingProducts || loadingPayOrder) {
     return (
       <CustomerLayout>
-        <div className="py-20 text-center text-muted-foreground">Loading checkout…</div>
+        <div className="py-20 text-center text-muted-foreground">{lo.checkout.loading}</div>
       </CustomerLayout>
     );
   }
@@ -276,9 +276,9 @@ export default function CheckoutPage() {
     return (
       <CustomerLayout>
         <div className="py-20 text-center">
-          <h1 className="font-display text-3xl">Your cart is empty</h1>
+          <h1 className="font-display text-3xl">{lo.checkout.emptyCart}</h1>
           <Link href="/shop" className="mt-4 inline-block text-accent-brand underline">
-            Continue shopping
+            {lo.checkout.continueShopping}
           </Link>
         </div>
       </CustomerLayout>
@@ -288,7 +288,7 @@ export default function CheckoutPage() {
   if (fetchFailed) {
     return (
       <CustomerLayout>
-        <div className="py-20 text-center text-destructive">Failed to load checkout products.</div>
+        <div className="py-20 text-center text-destructive">{lo.toast.failedLoadCheckout}</div>
       </CustomerLayout>
     );
   }
@@ -306,27 +306,27 @@ export default function CheckoutPage() {
         <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
           <h1 className="mb-2 font-display text-4xl md:text-5xl">
             {orderCancelled
-              ? 'ORDER CANCELLED'
+              ? lo.checkout.orderCancelled
               : paymentComplete
-                ? 'ชำระสำเร็จ'
+                ? lo.checkout.paymentSuccess
                 : awaitingPayment
-                  ? 'QR PAYMENT'
-                  : 'ORDER STATUS'}
+                  ? lo.checkout.qrPayment
+                  : lo.checkout.orderStatus}
           </h1>
           <p className="mb-8 text-muted-foreground">
-            Order #{paymentOrder.order_id} · {formatCurrency(orderTotal)}
+            {lo.checkout.orderNo}{paymentOrder.order_id} · {formatCurrency(orderTotal)}
           </p>
 
           <section className="space-y-6 border border-border p-6">
             <div className="flex flex-wrap gap-2">
               <OrderStatusBadge
-                label="Payment"
+                label={lo.order.payment}
                 status={paymentOrder.payment_status}
                 kind="payment"
                 order={paymentOrder}
               />
               <OrderStatusBadge
-                label="Shipping"
+                label={lo.order.shipping}
                 status={paymentOrder.shipping_status}
                 kind="shipping"
               />
@@ -334,31 +334,31 @@ export default function CheckoutPage() {
 
             {orderCancelled ? (
               <div className="space-y-4 rounded border border-red-200 bg-red-50 p-6 text-center">
-                <p className="font-display text-2xl text-red-900">ยกเลิก order แล้ว</p>
-                <p className="text-sm text-red-800">Order นี้ถูกยกเลิกแล้ว</p>
+                <p className="font-display text-2xl text-red-900">{lo.checkout.cancelledTitle}</p>
+                <p className="text-sm text-red-800">{lo.checkout.cancelledBody}</p>
                 <Link
                   href="/profile"
                   className="inline-block bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand"
                 >
-                  Back to orders
+                  {lo.checkout.backToOrders}
                 </Link>
               </div>
             ) : awaitingPayment ? (
               <>
                 <div className="text-center">
-                  <h2 className="font-display text-xl">SCAN TO PAY</h2>
+                  <h2 className="font-display text-xl">{lo.checkout.scanToPay}</h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Transfer via LAO QR / LAPNet, then upload your payment receipt below.
+                    {lo.checkout.qrHint}
                   </p>
                 </div>
 
                 <PaymentQrImage
                   src={paymentOrder.payment_image?.toString() ?? null}
-                  alt="Payment QR code"
+                  alt={lo.checkout.qrAlt}
                 />
 
                 <div className="rounded border border-border bg-secondary/50 p-4 text-center text-sm">
-                  <p className="font-semibold">Amount to pay</p>
+                  <p className="font-semibold">{lo.checkout.amountToPay}</p>
                   <p className="mt-1 font-display text-3xl text-accent-brand">
                     {formatCurrency(orderTotal)}
                   </p>
@@ -366,7 +366,7 @@ export default function CheckoutPage() {
 
                 {canUpload && (
                   <label className="block">
-                    <span className="text-xs font-bold uppercase tracking-widest">Upload receipt</span>
+                    <span className="text-xs font-bold uppercase tracking-widest">{lo.checkout.uploadReceipt}</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -384,7 +384,7 @@ export default function CheckoutPage() {
                       disabled={uploading || !receiptFile}
                       className="flex-1 bg-primary py-3 font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand disabled:opacity-50"
                     >
-                      {uploading ? 'Uploading…' : 'Confirm Payment'}
+                      {uploading ? lo.checkout.uploading : lo.checkout.confirmPayment}
                     </button>
                   )}
                   {showCancel && (
@@ -394,52 +394,52 @@ export default function CheckoutPage() {
                       disabled={cancelling || uploading}
                       className="flex-1 border border-destructive py-3 font-bold uppercase tracking-wider text-destructive hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
                     >
-                      {cancelling ? 'Cancelling…' : 'Cancel order'}
+                      {cancelling ? lo.checkout.cancelling : lo.checkout.cancelOrder}
                     </button>
                   )}
                   <Link
                     href="/profile"
                     className="flex-1 border border-border py-3 text-center font-bold uppercase tracking-wider hover:bg-secondary"
                   >
-                    View orders
+                    {lo.checkout.viewOrders}
                   </Link>
                 </div>
               </>
             ) : (
               <div className="space-y-4 rounded border border-emerald-200 bg-emerald-50 p-6 text-center">
-                <p className="font-display text-2xl text-emerald-900">ชำระสำเร็จ</p>
+                <p className="font-display text-2xl text-emerald-900">{lo.checkout.paymentSuccess}</p>
                 <p className="text-sm text-emerald-800">
-                  ระบบได้รับการชำระเงินของคุณแล้ว กำลังดำเนินการตรวจสอบ
+                  {lo.checkout.paymentSuccessBody}
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <OrderStatusBadge
-                    label="Payment"
+                    label={lo.order.payment}
                     status={paymentOrder.payment_status}
                     kind="payment"
                     order={paymentOrder}
                   />
                   <OrderStatusBadge
-                    label="Shipping"
+                    label={lo.order.shipping}
                     status={paymentOrder.shipping_status}
                     kind="shipping"
                   />
                 </div>
                 <p className="text-sm">
-                  Payment:{' '}
+                  {lo.order.payment}:{' '}
                   <span className="font-semibold">
                     {getPaymentDisplayLabel(paymentOrder.payment_status, paymentOrder)}
                   </span>
                   {' · '}
-                  Shipping:{' '}
+                  {lo.order.shipping}:{' '}
                   <span className="font-semibold">
-                    {formatStatusLabel(paymentOrder.shipping_status)}
+                    {statusLabel(paymentOrder.shipping_status)}
                   </span>
                 </p>
                 <Link
                   href="/profile"
                   className="inline-block bg-primary px-6 py-3 text-sm font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand"
                 >
-                  Back to orders
+                  {lo.checkout.backToOrders}
                 </Link>
               </div>
             )}
@@ -452,25 +452,25 @@ export default function CheckoutPage() {
   return (
     <CustomerLayout>
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <h1 className="mb-8 font-display text-4xl md:text-5xl">CHECKOUT</h1>
+        <h1 className="mb-8 font-display text-4xl md:text-5xl">{lo.checkout.title}</h1>
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="space-y-6">
             <section className="border border-border p-6">
-              <h2 className="mb-4 font-display text-xl">CUSTOMER INFORMATION</h2>
+              <h2 className="mb-4 font-display text-xl">{lo.checkout.customerInfo}</h2>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Full Name" error={errors.fullName?.message} {...register('fullName')} />
-                <Field label="Email" type="email" error={errors.email?.message} {...register('email')} />
-                <Field label="Telephone" error={errors.tel?.message} {...register('tel')} />
+                <Field label={lo.checkout.fullName} error={errors.fullName?.message} {...register('fullName')} />
+                <Field label={lo.common.email} type="email" error={errors.email?.message} {...register('email')} />
+                <Field label={lo.common.tel} error={errors.tel?.message} {...register('tel')} />
               </div>
             </section>
             <section className="border border-border p-6">
-              <h2 className="mb-4 font-display text-xl">SHIPPING ADDRESS</h2>
+              <h2 className="mb-4 font-display text-xl">{lo.checkout.shippingAddress}</h2>
               <div className="grid gap-4">
-                <Field label="Address" error={errors.address?.message} {...register('address')} />
+                <Field label={lo.common.address} error={errors.address?.message} {...register('address')} />
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label="City" error={errors.city?.message} {...register('city')} />
+                  <Field label={lo.checkout.city} error={errors.city?.message} {...register('city')} />
                   <Field
-                    label="Postal Code"
+                    label={lo.checkout.postalCode}
                     error={errors.postalCode?.message}
                     {...register('postalCode')}
                   />
@@ -478,7 +478,7 @@ export default function CheckoutPage() {
               </div>
             </section>
             <section className="border border-border p-6">
-              <h2 className="mb-4 font-display text-xl">PAYMENT METHOD</h2>
+              <h2 className="mb-4 font-display text-xl">{lo.checkout.paymentMethod}</h2>
               <div className="space-y-4">
                 <label className="flex cursor-pointer items-start gap-3 border border-border p-3 hover:border-primary">
                   <input
@@ -488,26 +488,25 @@ export default function CheckoutPage() {
                     className="mt-1 accent-[oklch(0.62_0.24_25)]"
                   />
                   <div>
-                    <div className="font-semibold">QR Payment</div>
+                    <div className="font-semibold">{lo.checkout.qrMethod}</div>
                     <div className="text-xs text-muted-foreground">
-                      Scan QR code to pay instantly via LAO QR / LAPNet
+                      {lo.checkout.qrMethodHint}
                     </div>
                   </div>
                 </label>
                 <p className="text-xs text-muted-foreground">
-                  After placing your order, the payment QR code from the backend will be shown for
-                  you to scan and complete payment.
+                  {lo.checkout.qrHelp}
                 </p>
               </div>
             </section>
           </div>
           <aside className="sticky top-24 h-fit border border-border p-6">
-            <h2 className="mb-4 font-display text-xl">ORDER SUMMARY</h2>
+            <h2 className="mb-4 font-display text-xl">{lo.checkout.orderSummary}</h2>
             <div className="max-h-60 space-y-2 overflow-auto text-sm">
               {enriched.map((item) => (
                 <div key={`${item.productId}-${item.size}-${item.color}`} className="flex justify-between">
                   <span className="truncate pr-2">
-                    {item.product.pro_name ?? 'Product'} × {item.quantity}
+                    {item.product.pro_name ?? lo.common.product} × {item.quantity}
                   </span>
                   <span className="shrink-0">
                     {formatCurrency(parsePrice(item.product.pro_price) * item.quantity)}
@@ -517,16 +516,16 @@ export default function CheckoutPage() {
             </div>
             <div className="mt-4 space-y-1 border-t border-border pt-4 text-sm">
               <div className="flex justify-between">
-                <span>Subtotal</span>
+                <span>{lo.cart.subtotal}</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Shipping</span>
-                <span>{shipping === 0 ? 'FREE' : formatCurrency(shipping)}</span>
+                <span>{lo.cart.shipping}</span>
+                <span>{shipping === 0 ? lo.common.free : formatCurrency(shipping)}</span>
               </div>
             </div>
             <div className="my-4 flex justify-between border-t border-border pt-4 font-display text-xl">
-              <span>Total</span>
+              <span>{lo.common.total}</span>
               <span className="text-accent-brand">{formatCurrency(total)}</span>
             </div>
             <button
@@ -534,7 +533,7 @@ export default function CheckoutPage() {
               disabled={submitting || enriched.length === 0}
               className="w-full bg-primary py-3 font-bold uppercase tracking-wider text-primary-foreground hover:bg-accent-brand disabled:opacity-50"
             >
-              {submitting ? 'Placing order…' : 'Place Order'}
+              {submitting ? lo.checkout.placingOrder : lo.checkout.placeOrder}
             </button>
           </aside>
         </form>

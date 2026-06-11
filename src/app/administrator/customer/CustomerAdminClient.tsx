@@ -10,6 +10,7 @@ import { customerService } from '@/services/customer.api';
 import { orderService } from '@/services/order.api';
 import { buildOrderStatsByCustomer, type Order } from '@/types/order.type';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { lo, statusLabel } from '@/lib/lao';
 
 function matchCustomer(
   c: {
@@ -48,7 +49,7 @@ export default function CustomerAdminClient() {
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load customers';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadCustomers;
           setError(message);
           toast.error(message);
         }
@@ -70,9 +71,9 @@ export default function CustomerAdminClient() {
   return (
     <div className="p-8 space-y-6">
       <div>
-        <h1 className="font-display text-3xl">CUSTOMERS</h1>
+        <h1 className="font-display text-3xl">{lo.admin.customers}</h1>
         <p className="text-muted-foreground">
-          {loading ? 'Loading…' : `${filtered.length} total`}
+          {loading ? lo.common.loading : lo.admin.total(filtered.length)}
         </p>
       </div>
 
@@ -89,25 +90,25 @@ export default function CustomerAdminClient() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search customers..."
+              placeholder={lo.admin.searchCustomers}
               className="w-full pl-9 pr-3 py-2 border border-border bg-background"
             />
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-muted-foreground">Loading customers…</div>
+            <div className="p-12 text-center text-muted-foreground">{lo.admin.loadingCustomers}</div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-muted-foreground">No customers found.</div>
+            <div className="p-12 text-center text-muted-foreground">{lo.admin.noCustomers}</div>
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-secondary text-xs uppercase">
                 <tr>
-                  <th className="text-left p-3">Name</th>
-                  <th className="text-left p-3">Email</th>
-                  <th className="text-left p-3">Tel</th>
-                  <th className="text-left p-3">Status</th>
-                  <th className="text-right p-3">Orders</th>
-                  <th className="p-3">Joined</th>
+                  <th className="text-left p-3">{lo.common.name}</th>
+                  <th className="text-left p-3">{lo.common.email}</th>
+                  <th className="text-left p-3">{lo.common.tel}</th>
+                  <th className="text-left p-3">{lo.common.status}</th>
+                  <th className="text-right p-3">{lo.admin.ordersShort}</th>
+                  <th className="p-3">{lo.admin.joined}</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,10 +121,10 @@ export default function CustomerAdminClient() {
                     }`}
                   >
                     <td className="p-3 font-semibold">{c.cus_name}</td>
-                    <td className="p-3">{c.Email || '—'}</td>
-                    <td className="p-3">{c.Tel || '—'}</td>
+                    <td className="p-3">{c.Email || lo.common.na}</td>
+                    <td className="p-3">{c.Tel || lo.common.na}</td>
                     <td className="p-3">
-                      <span className="px-2 py-0.5 text-xs bg-secondary">{c.cus_status}</span>
+                      <span className="px-2 py-0.5 text-xs bg-secondary">{statusLabel(c.cus_status)}</span>
                     </td>
                     <td className="p-3 text-right font-semibold">
                       {orderStats.get(c.cus_id)?.count ?? 0}
@@ -137,46 +138,46 @@ export default function CustomerAdminClient() {
         </div>
 
         <aside className="bg-card border border-border p-5 h-fit">
-          <h3 className="font-display text-xl mb-3">CUSTOMER DETAIL</h3>
+          <h3 className="font-display text-xl mb-3">{lo.admin.customerDetail}</h3>
           {!detail ? (
-            <p className="text-sm text-muted-foreground">Select a customer to view details.</p>
+            <p className="text-sm text-muted-foreground">{lo.admin.selectCustomer}</p>
           ) : (
             <div className="space-y-2 text-sm">
               <div>
-                <span className="text-muted-foreground">ID: </span>
+                <span className="text-muted-foreground">{lo.admin.id}: </span>
                 <span className="font-mono">{detail.cus_id}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Name: </span>
+                <span className="text-muted-foreground">{lo.common.name}: </span>
                 <span className="font-semibold">{detail.cus_name}</span>
               </div>
               <div>
-                <span className="text-muted-foreground">Email: </span>
-                {detail.Email || '—'}
+                <span className="text-muted-foreground">{lo.common.email}: </span>
+                {detail.Email || lo.common.na}
               </div>
               <div>
-                <span className="text-muted-foreground">Tel: </span>
-                {detail.Tel || '—'}
+                <span className="text-muted-foreground">{lo.common.tel}: </span>
+                {detail.Tel || lo.common.na}
               </div>
               <div>
-                <span className="text-muted-foreground">Status: </span>
-                {detail.cus_status}
+                <span className="text-muted-foreground">{lo.common.status}: </span>
+                {statusLabel(detail.cus_status)}
               </div>
               <div>
-                <span className="text-muted-foreground">Address: </span>
-                {detail.address || '—'}
+                <span className="text-muted-foreground">{lo.common.address}: </span>
+                {detail.address || lo.common.na}
               </div>
               <div>
-                <span className="text-muted-foreground">Updated: </span>
+                <span className="text-muted-foreground">{lo.admin.updated} </span>
                 {new Date(detail.updatedAt).toLocaleDateString()}
               </div>
               <div className="pt-3 border-t border-border mt-3 space-y-1">
                 <div>
-                  <span className="text-muted-foreground">Total orders: </span>
+                  <span className="text-muted-foreground">{lo.admin.totalOrdersLabel} </span>
                   <span className="font-semibold">{detailStats?.count ?? 0}</span>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Total spent: </span>
+                  <span className="text-muted-foreground">{lo.admin.totalSpent} </span>
                   <span className="font-semibold">
                     {formatCurrency(detailStats?.total ?? 0)}
                   </span>

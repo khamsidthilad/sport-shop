@@ -1,3 +1,4 @@
+import { lo } from '@/lib/lao';
 import type { Category } from '@/types/category.type';
 import type { Order } from '@/types/order.type';
 import type { Product } from '@/types/product.type';
@@ -63,8 +64,8 @@ export function buildCategorySales(
 
     const details = order.billDetails ?? [];
     if (details.length === 0) {
-      const fallback = salesByCategory.get('Other') ?? 0;
-      salesByCategory.set('Other', fallback + Number(order.price ?? 0));
+      const fallback = salesByCategory.get(lo.common.other) ?? 0;
+      salesByCategory.set(lo.common.other, fallback + Number(order.price ?? 0));
       continue;
     }
 
@@ -75,7 +76,7 @@ export function buildCategorySales(
       const cateId = productCategories.get(proId);
       const name = cateId
         ? (categoryNames.get(cateId)?.trim() || `Category #${cateId}`)
-        : 'Uncategorized';
+        : lo.common.uncategorized;
       const amount = Number(detail.Total ?? 0);
 
       salesByCategory.set(name, (salesByCategory.get(name) ?? 0) + amount);

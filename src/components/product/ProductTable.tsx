@@ -11,6 +11,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageUrl } from '@/utils/getProductImageUrl';
 import type { Product } from '@/types/product.type';
 import Image from 'next/image';
+import { lo } from '@/lib/lao';
 const PER_PAGE = 10;
 
 function parsePrice(price?: string) {
@@ -24,7 +25,7 @@ function ProductImageInner({ src, alt }: { src?: string; alt: string }) {
   if (!url || failed) {
     return (
       <div className="w-10 h-10 bg-secondary border border-border flex items-center justify-center text-[10px] text-muted-foreground">
-        N/A
+        {lo.common.na}
       </div>
     );
   }
@@ -67,7 +68,7 @@ export default function ProductTable({ onEdit }: ProductTableProps) {
         if (!cancelled) dispatch(setItems(items));
       } catch (err: unknown) {
         if (!cancelled) {
-          const message = err instanceof Error ? err.message : 'Failed to load products';
+          const message = err instanceof Error ? err.message : lo.toast.failedLoadProducts;
           setError(message);
           toast.error(message);
         }
@@ -101,15 +102,15 @@ export default function ProductTable({ onEdit }: ProductTableProps) {
   const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
 
   const handleDelete = async (product: Product) => {
-    if (!confirm(`Delete "${product.pro_name ?? 'this product'}"?`)) return;
+    if (!confirm(lo.product.deleteConfirm(product.pro_name ?? lo.common.product))) return;
 
     setDeletingId(product.pro_id);
     try {
       await productService.delete(product.pro_id);
       dispatch(setItems(products.filter((p) => p.pro_id !== product.pro_id)));
-      toast.success('Product deleted');
+      toast.success(lo.product.deleted);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to delete product';
+      const message = err instanceof Error ? err.message : lo.toast.failedDeleteProduct;
       toast.error(message);
     } finally {
       setDeletingId(null);
@@ -119,7 +120,7 @@ export default function ProductTable({ onEdit }: ProductTableProps) {
   if (loading) {
     return (
       <div className="bg-card border border-border p-12 text-center text-muted-foreground">
-        Loading products…
+        {lo.admin.loadingProducts}
       </div>
     );
   }
@@ -142,32 +143,32 @@ export default function ProductTable({ onEdit }: ProductTableProps) {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              placeholder="Search products..."
+              placeholder={lo.shop.searchPlaceholder}
               className="w-full pl-9 pr-3 py-2 border border-border bg-background"
             />
           </div>
-          <p className="self-center text-sm text-muted-foreground">{filtered.length} total</p>
+          <p className="self-center text-sm text-muted-foreground">{lo.admin.total(filtered.length)}</p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-secondary text-xs uppercase tracking-wider">
               <tr>
-                <th className="text-left p-3">ID</th>
-                <th className="text-left p-3">Image</th>
-                <th className="text-left p-3">Product</th>
-                <th className="text-left p-3">Brand</th>
-                <th className="text-left p-3">Category</th>
-                <th className="text-right p-3">Price</th>
-                <th className="text-right p-3">Stock</th>
-                <th className="text-center p-3">Status</th>
-                <th className="text-right p-3">Actions</th>
+                <th className="text-left p-3">{lo.admin.id}</th>
+                <th className="text-left p-3">{lo.product.image}</th>
+                <th className="text-left p-3">{lo.common.product}</th>
+                <th className="text-left p-3">{lo.product.brand}</th>
+                <th className="text-left p-3">{lo.product.category}</th>
+                <th className="text-right p-3">{lo.common.price}</th>
+                <th className="text-right p-3">{lo.product.stock}</th>
+                <th className="text-center p-3">{lo.common.status}</th>
+                <th className="text-right p-3">{lo.common.actions}</th>
               </tr>
             </thead>
             <tbody>
               {paged.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="p-8 text-center text-muted-foreground">
-                    No products found.
+                    {lo.product.noProducts}
                   </td>
                 </tr>
               ) : (
@@ -179,11 +180,11 @@ export default function ProductTable({ onEdit }: ProductTableProps) {
                     <tr key={p.pro_id} className="border-t border-border hover:bg-secondary/50">
                       <td className="p-3 font-mono text-xs">{p.pro_id}</td>
                       <td className="p-3">
-                        <ProductImage src={p.pro_image} alt={p.pro_name ?? 'Product'} />
+                        <ProductImage src={p.pro_image} alt={p.pro_name ?? lo.common.product} />
                       </td>
-                      <td className="p-3 font-semibold">{p.pro_name ?? '—'}</td>
-                      <td className="p-3">{p.brand?.name ?? '—'}</td>
-                      <td className="p-3">{p.category?.cate_name ?? '—'}</td>
+                      <td className="p-3 font-semibold">{p.pro_name ?? lo.common.na}</td>
+                      <td className="p-3">{p.brand?.name ?? lo.common.na}</td>
+                      <td className="p-3">{p.category?.cate_name ?? lo.common.na}</td>
                       <td className="p-3 text-right font-bold">
                         {formatCurrency(parsePrice(p.pro_price))}
                       </td>
@@ -192,7 +193,7 @@ export default function ProductTable({ onEdit }: ProductTableProps) {
                         <span
                           className={`px-2 py-0.5 text-xs ${inStock ? 'bg-green-100 text-green-700' : 'bg-secondary'}`}
                         >
-                          {inStock ? 'In stock' : 'Out of stock'}
+                          {inStock ? lo.product.inStockStatus : lo.product.outOfStock}
                         </span>
                       </td>
                       <td className="p-3 text-right">
