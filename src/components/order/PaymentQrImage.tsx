@@ -30,7 +30,7 @@ export function PaymentQrImage({
           className={`flex items-center justify-center border border-border bg-secondary text-sm text-muted-foreground ${className}`}
           style={{ width: size, height: size }}
         >
-          <Image src="/assets/QR.jpeg" alt={lo.order.qrPlaceholder} width={size} height={size} />
+          <Image src="/assets/qr.jpeg" alt={lo.order.qrPlaceholder} width={size} height={size} />
         </div>
       );
     }

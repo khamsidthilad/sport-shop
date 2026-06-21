@@ -11,7 +11,7 @@ import { lo } from '@/lib/lao';
 const nav = [
   { href: '/', label: lo.nav.home },
   { href: '/shop', label: lo.nav.shop },
-  { href: '/category', label: lo.nav.categories },
+  // { href: '/category', label: lo.nav.categories },
   { href: '/brand', label: lo.nav.brands },
   { href: '/contact', label: lo.nav.contact },
 ] as const;
